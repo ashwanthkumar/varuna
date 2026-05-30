@@ -30,3 +30,7 @@ yarn-error.log*
 
 # tscircuit snapshot images (regenerate with `tsci snapshot`)
 __snapshots__/
+
+# Claude Code session state (machine-specific)
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
