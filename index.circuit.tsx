@@ -228,24 +228,26 @@ export default () => (
     {/* The DevKit's own USB still handles flashing; this is read/log  */}
     {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
     {/* ============================================================ */}
-    {/* J_DBG centred in the bottom gap between J_AC (right edge -72) and
-       J_FL1 (left edge -16): gap centre x=-44. pcbRotation=90 so the 3 pins
-       run vertically and the connector faces the bottom edge for a clip-on
-       USB-TTL adapter (TX/RX/GND). 3 pins is sufficient — flashing uses the
-       DevKit USB; this is a serial-log tap only. */}
-    <silkscreentext text="DBG" pcbX={-49} pcbY={-15} anchorAlignment="center" fontSize={1.2} />
+    {/* J_DBG on the SAME bottom-edge row as J_AC/J_FL (pads at y=-42),
+       centred in the gap between J_AC (right edge -72) and J_FL1 (left edge
+       -16): gap centre x=-44. Pins run horizontally (3-in-a-row), facing the
+       bottom edge so a USB-TTL lead plugs in from below the enclosure.
+       Use a RIGHT-ANGLE male header so the connector exits toward the edge.
+       3 pins is sufficient — flashing uses the DevKit USB; this is a
+       serial-log tap only (TX/RX/GND). */}
+    <silkscreentext text="DBG" pcbX={-44} pcbY={-35} anchorAlignment="center" fontSize={1.2} />
     <pinheader
       name="J_DBG"
       pinCount={3}
       pitch="2.54mm"
       gender="male"
+      rightAngle
       showSilkscreenPinLabels
       pinLabels={["TX", "RX", "GND"]}
       schX={4}
       schY={-6}
-      pcbRotation={90}
       pcbX={-44}
-      pcbY={-16}
+      pcbY={-42}
     />
     <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
     <trace from="J_DBG.RX" to="ESP_R.GPIO3" />
