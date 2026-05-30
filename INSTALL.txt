@@ -73,29 +73,6 @@
   (~12-13A for 2HP single-phase).
 
 ------------------------------------------------------------------------------
- 5b. CURRENT / ENERGY METERING  (J_CT — current transformer input)
-------------------------------------------------------------------------------
-  Optional but recommended: current-based dry-run protection + power/kWh.
-
-    Clamp a current transformer (CT) around the MOTOR LIVE wire (the same Live
-    feeding the motor after the overload). Land the CT's two leads on:
-
-      CT lead 1 ──► J_CT.CT1
-      CT lead 2 ──► J_CT.CT2
-
-  On-board BL0942 reads the CT (current); ZMPT101B reads mains voltage — giving
-  the ESP32 motor current / voltage / power.
-
-  CT selection: split-core or ring CT rated >=15A (e.g. ZMCT103C, SCT-013). The
-  on-board burden resistor R_BUR must match the CT ratio (reference value on the
-  PCB — confirm with the CT + BL0942 datasheets).
-
-  WHY: a pump running DRY draws noticeably LESS current than when pumping. The
-  firmware watches for this current drop as a second, independent dry-run trip
-  (works even if a sump probe wire fails), and also flags over-current (jam).
-  Calibrate thresholds against the actual motor at first install.
-
-------------------------------------------------------------------------------
  6. SENSORS — 30-40m CAT6 from tank/sump  (bottom-edge terminals)
 ------------------------------------------------------------------------------
   Use ferrules on all CAT6 conductors. Suggested pair allocation:
