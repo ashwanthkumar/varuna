@@ -44,6 +44,9 @@ TVS_PR3C PRTR5V0U2X           C2827688  ESD/TVS for probe line PR3 + excitation 
 ESP32    ESP32 DevKit V1       —         DOIT WROOM-32, 38-pin. Plugs into ESP_L/ESP_R headers.
 ESP_L    Female header 19-pin  —         2.54mm pitch (left DevKit rail)
 ESP_R    Female header 19-pin  —         2.54mm pitch (right DevKit rail)
+J_DBG    Male header 3-pin     —         2.54mm UART debug: TX(GPIO1)/RX(GPIO3)/GND.
+#                                         Clip a 3V3 USB-TTL adapter for serial logs in
+#                                         the field (flashing still via DevKit USB).
 
 # ── LEDs & resistors ──────────────────────────────────────────────────────────
 # LED_PWR  : hardware power indicator, always on when SW1 is on. No GPIO.

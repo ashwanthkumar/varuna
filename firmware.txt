@@ -33,6 +33,13 @@ GPIO5   OUTPUT LED_PRB  — Probe water detected (blue)  (HIGH when any probe re
 GPIO0   INPUT  BTN_PAIR — WiFi pairing mode            (hold 3s → enter SmartConfig / BLE provisioning)
 GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/WiFi credentials, reboot)
 
+# UART DEBUG (J_DBG 3-pin header — field serial console)
+GPIO1   UART0  TX → J_DBG.TX                           (default Serial; clip USB-TTL RX here)
+GPIO3   UART0  RX → J_DBG.RX                           (default Serial; clip USB-TTL TX here)
+# NOTE: GPIO1/GPIO3 are the ESP32 boot UART. Serial.begin() uses them by default, so
+#       firmware logs appear on J_DBG with no extra setup. Don't drive them as GPIO.
+#       Firmware flashing is still done via the DevKit's own USB port (not J_DBG).
+
 # NOTE: GPIO36/39/34/35 are INPUT-ONLY on ESP32 — never configure as OUTPUT.
 # NOTE: GPIO34/35 have NO internal pull config — external pull-DOWN is on the board.
 # NOTE: GPIO36/39 have NO internal pull config — external pull-UP is on the board.

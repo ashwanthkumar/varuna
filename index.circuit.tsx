@@ -222,6 +222,30 @@ export default () => (
     <trace from="ESP_R.GND_R2" to="net.GND" />
 
     {/* ============================================================ */}
+    {/* UART DEBUG HEADER (J_DBG) — clip-on serial for field service  */}
+    {/* 3-pin: TX(GPIO1) / RX(GPIO3) / GND. Connect a USB-TTL adapter */}
+    {/* (3V3 logic) to read Serial logs without removing the DevKit.  */}
+    {/* The DevKit's own USB still handles flashing; this is read/log  */}
+    {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
+    {/* ============================================================ */}
+    <silkscreentext text="DBG TX RX G" pcbX={22} pcbY={20} anchorAlignment="center" fontSize={1.2} />
+    <pinheader
+      name="J_DBG"
+      pinCount={3}
+      pitch="2.54mm"
+      gender="male"
+      showSilkscreenPinLabels
+      pinLabels={["TX", "RX", "GND"]}
+      schX={4}
+      schY={-6}
+      pcbX={22}
+      pcbY={16}
+    />
+    <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
+    <trace from="J_DBG.RX" to="ESP_R.GPIO3" />
+    <trace from="J_DBG.GND" to="net.GND" />
+
+    {/* ============================================================ */}
     {/* DRIVER + RELAY:  switch the external DOL contactor coil      */}
     {/* ============================================================ */}
     {/* ULN2003A darlington array (built-in flyback diodes on COM/pin9).
