@@ -21,7 +21,7 @@ varuna-ts/
 │   ├── package.json      #   tscircuit CLI project
 │   └── tscircuit.config.json
 ├── firmware/             # (future) ESP32 firmware — see firmware.txt for the spec
-├── enclosure/            # (future) 3D-printable enclosure models
+├── enclosure/            # OpenSCAD 3D-printable enclosure (base + lid)
 ├── firmware.txt          # firmware requirements / GPIO map / control logic
 ├── INSTALL.txt           # panel wiring & installation guide (electrician-facing)
 ├── notes/                # design research & deferred-feature notes
@@ -31,8 +31,9 @@ varuna-ts/
 └── README.md             # this file
 ```
 
-> `firmware/` and `enclosure/` are placeholders for upcoming work. `firmware.txt`
-> is the current firmware *specification* (no code written yet).
+> `firmware/` is a placeholder; `firmware.txt` is the current firmware
+> *specification* (no code yet). `enclosure/` has a parametric OpenSCAD model
+> (single box: PCB + DIN rail) — see `enclosure/README.md`.
 
 ---
 
