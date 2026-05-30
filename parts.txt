@@ -18,12 +18,17 @@ J_COIL   WJ500V-5.08-2P       C8465     Contactor coil out: A1 (switched Live) /
 J_OL     WJ500V-5.08-2P       C8465     Overload relay aux NC contact sense: OL / GND
 
 # ── EXTERNAL DOL components (DIN-rail, NOT on PCB — install in enclosure) ─────
-#  Contactor  : CJX2-3211 / LC1D32, 32A AC-3, 220VAC coil  → wire coil to J_COIL
-#  Overload   : LRD-22 thermal overload (clips under contactor), set dial to
-#               motor FLA (~12A for 2HP single-phase). 95-96 NC aux → J_OL.
-#  MCB        : 20A Type-C in DB panel (upstream, handles motor inrush)
-#  (For lighter duty a CJX2-1811 18A contactor + LRD-16 also works, but 32A is
-#   recommended for daily-cycling single-phase pumps — see chat rationale.)
+#  Contactor  : LEYDEN CJX2-3211, 32A AC-3, 220/230VAC 50Hz coil, 3-pole.
+#               Coil A1/A2 → J_COIL. For single-phase motor, parallel two poles
+#               for the Live conductor (1/L1+3/L2 → 2/T1+4/T2) for longer contact
+#               life; route Neutral through the third pole or straight.
+#  Overload   : MAGNUM MaK-1 2P, single-phase, 13-21A range. Clips under the
+#               CJX2 contactor. Set dial to ~13A (motor FLA for 2HP single-phase).
+#               95-96 NC aux contact → J_OL (trip sense to GPIO21).
+#  MCB        : 20A Type-C in DB panel (upstream, handles motor inrush).
+#  NOTE: contactor must be AC3 >= 15A. Do NOT use enclosed manual starters whose
+#        internal contactor is only AC3 10A (e.g. MAGNUM MCHK-1) — undersized
+#        for 15A/2HP, and their push-button latch logic conflicts with automation.
 
 # ── Sensor inputs — 30-40m CAT6 UTP run from overhead tank ───────────────────
 J_FL1    WJ500V-5.08-2P       C8465     Float switch 1: tank LOW  (bottom edge, CAT6 pair 1)
