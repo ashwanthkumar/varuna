@@ -83,8 +83,8 @@ export default () => (
       schX={-13}
       schY={6}
       pcbRotation={180}
-      pcbX={-90}
-      pcbY={50}
+      pcbX={-80}
+      pcbY={44}
     />
     {/* RV1 = TMOV14RP275E: 275Vac MOV across L-N (JLC C1528070).
        Clamps mains transients. No PCB fuse — upstream MCB in the DB panel
@@ -126,19 +126,20 @@ export default () => (
        L lane: x=-85, N lane: x=-93. Lane centre spacing = 8mm => edge gap
        = 8 - 0.8 = 7.2mm (well above the 3mm minimum for 230Vac).
        All mains copper stays on the HLK primary side (left of the module). */}
-    {/* L: J_AC.L -> MOV.B -> HLK.ACL — live lane at x=-85 */}
+    {/* L: J_AC.L (pin at -75,44) -> drop to y=35 above RV1 courtyard -> left to RV1.B
+       L lane centre-to-N lane centre = 18mm => edge gap = 17.2mm (well above 3mm min) */}
     <trace from="J_AC.L" to="RV1.B" thickness="0.8mm"
-      path={[{ x: -85, y: 50 }, { x: -85, y: 28 }, { x: -86.23, y: 28 }]} />
+      path={[{ x: -75, y: 44 }, { x: -75, y: 35 }, { x: -86.23, y: 35 }, { x: -86.23, y: 28 }]} />
     <trace from="RV1.B" to="U_PSU.ACL" thickness="0.8mm"
       path={[{ x: -86.23, y: 28 }, { x: -85, y: 28 }, { x: -85, y: 5 }, { x: -88.8, y: 5 }]} />
-    {/* N: J_AC.N -> MOV.A -> HLK.ACN — neutral lane at x=-93 */}
+    {/* N: J_AC.N (pin at -80,44) -> left to x=-93 -> down to RV1.A */}
     <trace from="J_AC.N" to="RV1.A" thickness="0.8mm"
-      path={[{ x: -90, y: 50 }, { x: -90, y: 46 }, { x: -93, y: 46 }, { x: -93, y: 28 }, { x: -88.77, y: 28 }]} />
+      path={[{ x: -80, y: 44 }, { x: -93, y: 44 }, { x: -93, y: 28 }, { x: -88.77, y: 28 }]} />
     <trace from="RV1.A" to="U_PSU.ACN" thickness="0.8mm"
       path={[{ x: -88.77, y: 28 }, { x: -93, y: 28 }, { x: -93, y: 11 }, { x: -88.8, y: 11 }]} />
-    {/* Protective earth — far-left edge, clear of L/N lanes */}
+    {/* E: J_AC.E (pin at -85,44) -> short stub, isolated from L/N */}
     <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm"
-      path={[{ x: -95, y: 50 }, { x: -95, y: 44 }]} />
+      path={[{ x: -85, y: 44 }, { x: -85, y: 40 }]} />
     {/* DC-side: PSU 5V -> onboard slide switch -> board 5V rail */}
     <trace from="U_PSU.V5" to="SW1.P5_IN" />
     <trace from="SW1.P5_OUT" to="net.V5" />
