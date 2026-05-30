@@ -1,0 +1,47 @@
+# Varuna — JLCPCB Bill of Materials
+# All parts ordered from JLCPCB / LCSC. Search by C# on jlcpcb.com or lcsc.com.
+
+# Power supply
+U_PSU   HLK-5M05            C209907   AC-DC isolated module 5V/1A (Hi-Link)
+
+# Mains protection
+RV1     TMOV14RP275E        C1528070  MOV varistor 275Vac, across L-N
+
+# Motor control
+U_DRV   ULN2003ADR          C7512     Darlington array SOIC16 (relay driver)
+RLY1    SRD-05VDC-SL-C      C35449    5V relay, SPDT (START)
+RLY2    SRD-05VDC-SL-C      C35449    5V relay, SPDT (STOP)
+
+# Connectors — mains & outputs (5.0mm pitch, 3-pole)
+J_AC    WJ128V-5.0-3P       C8270     AC mains input (L / N / E)
+J_START WJ128V-5.0-3P       C8270     MK1 remote START terminals (COM / NO / NC)
+J_STOP  WJ128V-5.0-3P       C8270     MK1 remote STOP terminals (COM / NO / NC)
+
+# Sensor inputs — CAT6 run (30-40m) from overhead tank
+J_FL1   WJ500V-5.08-2P      C8465     Float switch 1 — Overhead tank LOW  (CAT6 pair 1)
+J_FL2   WJ500V-5.08-2P      C8465     Float switch 2 — Overhead tank HIGH (CAT6 pair 2)
+J_PR    DB128L-5.08-4P-GN-S C2827883  SS probe connector 4P: PR1(LOW)/PR2(MID)/PR3(HIGH)/COM (CAT6 pair 3+4)
+
+# Surge protection — TVS diode arrays for 30-40m outdoor cable
+TVS_FL  PRTR5V0U2X          C2827688  ESD/surge protection for FL1 + FL2 lines
+TVS_PR12 PRTR5V0U2X         C2827688  ESD/surge protection for PR1 + PR2 lines
+TVS_PR3C PRTR5V0U2X         C2827688  ESD/surge protection for PR3 + COM lines
+
+# Power switch
+SW1     SS12D10G3           C7431053  SPDT slide switch (onboard controller ON/OFF)
+
+# MCU headers (buy locally — standard 2.54mm female pin headers, 19-pin × 2)
+ESP_L   Female pin header   —         19-pin, 2.54mm pitch (left rail of ESP32 DevKit)
+ESP_R   Female pin header   —         19-pin, 2.54mm pitch (right rail of ESP32 DevKit)
+
+# Passives (standard 0603 / 1206 SMD — source from any supplier)
+C1      100uF 1206          —         PSU output bulk cap
+C2      100nF 0603          —         PSU output decoupling cap
+RU1-8   10k 0603 ×8         —         Float-switch GPIO pull-up resistors
+RS1-8   220R 0603 ×8        —         Float-switch GPIO series protection resistors
+CF1-8   100nF 0603 ×8       —         Float-switch debounce caps
+R_LED   330R 0603           —         Status LED current-limit resistor
+LED1    Green LED 0603       —         Status indicator
+
+# Not on PCB — install in DB panel
+—       MCB 2A              —         Upstream overcurrent protection for the whole board
