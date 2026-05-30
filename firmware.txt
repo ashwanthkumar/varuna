@@ -21,17 +21,6 @@ GPIO23  OUTPUT RLY_MOTOR — contactor coil (ULN2003 IN1) (active HIGH = HELD wh
 GPIO21  INPUT  J_OL — thermal overload aux NC contact   (board pull-UP. Contact CLOSED to GND = healthy => reads LOW.
 #                                                         Overload TRIPPED => contact opens => reads HIGH.)
 
-# ENERGY METER (BL0942 — UART/SPI to ESP32; external CT + ZMPT101B)
-GPIO25  UART/IO BL0942 link A  (U_MTR.A1)               (energy meter digital interface — verify RX vs TX/CS in datasheet)
-GPIO26  UART/IO BL0942 link B  (U_MTR.A2_NCS)           (energy meter digital interface — verify TX vs RX/CS in datasheet)
-# BL0942 reports motor RMS current, voltage, power, energy over a serial link.
-# Use it for CURRENT-BASED DRY-RUN: a pump losing prime draws noticeably LESS
-# current than when pumping. Watch for current dropping below a learned/healthy
-# threshold while the motor is commanded ON -> treat as dry-run, stop the motor.
-# Also flag OVER-current (jam) and use power/energy for monitoring/telemetry.
-# NOTE: BL0942 SEL pin selects UART vs SPI; confirm the interface + exact pin
-#       roles (RX/TX or CS/CLK/SDO) against the BL0942 datasheet before coding.
-
 # OUTPUTS (LEDs — all active HIGH, GPIO-controlled)
 GPIO4   OUTPUT LED1    — WiFi / system status (green)  (slow blink=connected, fast blink=fault, solid=pump running)
 GPIO17  OUTPUT LED_MOTOR — Motor running (yellow)      (HIGH while contactor coil is energised; LOW when motor off)
