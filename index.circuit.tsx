@@ -50,6 +50,7 @@ import { DB128L_5_08_4P_GN_S as Terminal4P } from "./imports/DB128L_5_08_4P_GN_S
 import { SS12D10G3 } from "./imports/SS12D10G3"
 import { TMOV14RP275E } from "./imports/TMOV14RP275E"
 import { PRTR5V0U2X } from "./imports/PRTR5V0U2X"
+import { TS_1101_C_W as TactileButton } from "./imports/TS_1101_C_W"
 
 // Semantic pin-label overrides (spread last in each import, so these win).
 const RELAY_PINS = { pin1: "NC", pin2: "COILA", pin3: "COILB", pin4: "NO", pin5: "COM" } as const
@@ -362,10 +363,14 @@ export default () => (
     {/* the cover holes for direct finger press (see parts.txt).       */}
     {/* Placed at x=-76/-62, clear of the AC lanes (L@x=-85, N@x=-93). */}
     {/* ============================================================ */}
+    {/* TS-1101-C-W 6x6mm THT tactile button (JLC C318938).
+       4-pin: pin1/pin3 = one side, pin2/pin4 = other side; press bridges them.
+       Wire pin1 -> GND, pin2 -> GPIO/pull-up node (SPST). Fit a tall keycap /
+       extender or use a cover hole over the actuator for finger access. */}
     <silkscreentext text="PAIR" pcbX={-76} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <pushbutton name="BTN_PAIR" schX={6} schY={-7} pcbX={-76} pcbY={-14} />
-    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-70} pcbY={-20} />
-    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-76} pcbY={-20} />
+    <TactileButton name="BTN_PAIR" schX={6} schY={-7} pcbX={-76} pcbY={-15} />
+    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-68} pcbY={-21} />
+    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-76} pcbY={-21} />
     <trace from="BTN_PAIR.pin1" to="net.GND" />
     <trace from="BTN_PAIR.pin2" to="R_BPAIR.pin2" />
     <trace from="R_BPAIR.pin1" to="net.V3V3" />
@@ -373,10 +378,10 @@ export default () => (
     <trace from="C_BPAIR.pin1" to="ESP_R.GPIO0" />
     <trace from="C_BPAIR.pin2" to="net.GND" />
 
-    <silkscreentext text="RESET" pcbX={-60} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <pushbutton name="BTN_RST" schX={10} schY={-7} pcbX={-60} pcbY={-14} />
-    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-54} pcbY={-20} />
-    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-60} pcbY={-20} />
+    <silkscreentext text="RESET" pcbX={-58} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
+    <TactileButton name="BTN_RST" schX={10} schY={-7} pcbX={-58} pcbY={-15} />
+    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-50} pcbY={-21} />
+    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-58} pcbY={-21} />
     <trace from="BTN_RST.pin1" to="net.GND" />
     <trace from="BTN_RST.pin2" to="R_BRST.pin2" />
     <trace from="R_BRST.pin1" to="net.V3V3" />
