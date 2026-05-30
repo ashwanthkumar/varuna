@@ -455,7 +455,7 @@ export default () => (
     {/* ============================================================ */}
     {/* BL0942 metering IC (SOP14). VDD=3V3, IP/IN=current diff in,
        VP=voltage in. Digital link on GPIO25/26 (free UART-capable pins). */}
-    <silkscreentext text="METER BL0942" pcbX={-52} pcbY={-6} anchorAlignment="center" fontSize={1} />
+    <silkscreentext text="METER BL0942" pcbX={-52} pcbY={-9} anchorAlignment="center" fontSize={1} />
     <BL0942
       name="U_MTR"
       schX={-6}
