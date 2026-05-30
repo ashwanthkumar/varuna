@@ -23,7 +23,7 @@ GPIO21  INPUT  J_OL — thermal overload aux NC contact   (board pull-UP. Contac
 
 # OUTPUTS (LEDs — all active HIGH, GPIO-controlled)
 GPIO4   OUTPUT LED1    — WiFi / system status (green)  (slow blink=connected, fast blink=fault, solid=pump running)
-GPIO17  OUTPUT LED_MOTOR — Motor running (yellow)      (HIGH while pump is ON; cleared immediately after STOP pulse)
+GPIO17  OUTPUT LED_MOTOR — Motor running (yellow)      (HIGH while contactor coil is energised; LOW when motor off)
 GPIO19  OUTPUT LED_FL1  — Float switch 1 state (blue)  (mirrors GPIO36: HIGH when float is triggered / tank LOW)
 GPIO18  OUTPUT LED_FL2  — Float switch 2 state (blue)  (mirrors GPIO39: HIGH when float is triggered / tank HIGH)
 GPIO5   OUTPUT LED_PRB  — Probe water detected (blue)  (HIGH when any probe reads water during excitation cycle)
