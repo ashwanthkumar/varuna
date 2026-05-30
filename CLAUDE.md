@@ -1,5 +1,16 @@
 # Varuna — ESP32 Pump Controller (tscircuit PCB project)
 
+## Repo structure (since the pcb/ restructure)
+
+- `pcb/` — the tscircuit project. **Run all `tsci` commands from inside `pcb/`**
+  (`cd pcb && tsci build`). Contains `index.circuit.tsx`, `imports/`, `parts.txt`,
+  `package.json`, `tscircuit.config.json`, `node_modules/`, `__snapshots__/`, `dist/`.
+- `firmware.txt` (root) — firmware spec; `firmware/` will hold the code later.
+- `INSTALL.txt` (root) — panel wiring / install guide.
+- `notes/` (root) — deferred-feature research (energy metering, bare-module migration).
+- `README.md` (root) — project overview + how to build/run.
+- Node 20 via `.nvmrc` (root); `.npmrc` lives in `pcb/`.
+
 ## Project overview
 
 ESP32-based water-level automation board that controls a 2HP single-phase (230V) motor by directly driving an **external DOL contactor coil** (CJX2-3211 / LC1D32, 220VAC coil). The board + contactor + thermal overload relay form the DOL starter, all in one DIN-rail enclosure. The contactor (not the PCB) carries motor current; the onboard relay only switches the ~200mA coil.
@@ -122,7 +133,7 @@ CAT6 pair allocation: pair1=FL1, pair2=FL2, pair3=COM+PR1, pair4=PR2+PR3
 
 ## JLCPCB part numbers
 
-See [`parts.txt`](./parts.txt) for the full BOM with descriptions and quantities.
+See [`parts.txt`](./pcb/parts.txt) for the full BOM with descriptions and quantities.
 
 Key C-numbers for quick reference:
 - **TVS_FL/PR12/PR3C** PRTR5V0U2X → C2827688
