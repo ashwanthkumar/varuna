@@ -52,6 +52,8 @@ import { TMOV14RP275E } from "./imports/TMOV14RP275E"
 import { PRTR5V0U2X } from "./imports/PRTR5V0U2X"
 import { TS_1101_C_W as TactileButton } from "./imports/TS_1101_C_W"
 import { S3B_XH_A_LF__SN_ as DebugConn } from "./imports/S3B_XH_A_LF__SN_"
+import { BL0942 } from "./imports/BL0942"
+import { ZMPT101B } from "./imports/ZMPT101B"
 
 // Semantic pin-label overrides (spread last in each import, so these win).
 const RELAY_PINS = { pin1: "NC", pin2: "COILA", pin3: "COILB", pin4: "NO", pin5: "COM" } as const
@@ -403,17 +405,18 @@ export default () => (
     {/* Active-LOW (button shorts to GND), 10k pull-up + 100nF debounce. */}
     {/* Use TALL through-hole tactile buttons so the actuator reaches  */}
     {/* the cover holes for direct finger press (see parts.txt).       */}
-    {/* Placed at x=-76/-62, clear of the AC lanes (L@x=-85, N@x=-93). */}
+    {/* Moved to the RIGHT side (top-right, above J_COIL) to free the */}
+    {/* below-HLK area for the energy-metering block.                 */}
     {/* ============================================================ */}
     {/* TS-1101-C-W 6x6mm THT tactile button (JLC C318938).
        4-pin: pin1/pin3 = one side, pin2/pin4 = other side; press bridges them.
        Wire pin1 -> GND, pin2 -> GPIO/pull-up node (SPST). Fit a tall keycap /
        extender or use a cover hole over the actuator for finger access. */}
-    {/* PAIR + RESET grouped below the HLK module (x=-76/-58). */}
-    <silkscreentext text="PAIR" pcbX={-76} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <TactileButton name="BTN_PAIR" schX={6} schY={-7} pcbX={-76} pcbY={-15} />
-    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-68} pcbY={-21} />
-    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-76} pcbY={-21} />
+    {/* PAIR + RESET grouped top-right (x=58/74, y=44). */}
+    <silkscreentext text="PAIR" pcbX={58} pcbY={48} anchorAlignment="center" fontSize={1.5} />
+    <TactileButton name="BTN_PAIR" schX={6} schY={-7} pcbX={58} pcbY={44} />
+    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={58} pcbY={39} />
+    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={63} pcbY={39} />
     <trace from="BTN_PAIR.pin1" to="net.GND" />
     <trace from="BTN_PAIR.pin2" to="R_BPAIR.pin2" />
     <trace from="R_BPAIR.pin1" to="net.V3V3" />
@@ -421,16 +424,89 @@ export default () => (
     <trace from="C_BPAIR.pin1" to="ESP_R.GPIO0" />
     <trace from="C_BPAIR.pin2" to="net.GND" />
 
-    <silkscreentext text="RESET" pcbX={-58} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <TactileButton name="BTN_RST" schX={10} schY={-7} pcbX={-58} pcbY={-15} />
-    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-50} pcbY={-21} />
-    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-58} pcbY={-21} />
+    <silkscreentext text="RESET" pcbX={74} pcbY={48} anchorAlignment="center" fontSize={1.5} />
+    <TactileButton name="BTN_RST" schX={10} schY={-7} pcbX={74} pcbY={44} />
+    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={74} pcbY={39} />
+    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={79} pcbY={39} />
     <trace from="BTN_RST.pin1" to="net.GND" />
     <trace from="BTN_RST.pin2" to="R_BRST.pin2" />
     <trace from="R_BRST.pin1" to="net.V3V3" />
     <trace from="BTN_RST.pin2" to="ESP_R.GPIO16" />
     <trace from="C_BRST.pin1" to="ESP_R.GPIO16" />
     <trace from="C_BRST.pin2" to="net.GND" />
+
+    {/* ============================================================ */}
+    {/* ENERGY METERING — BL0942 + external CT + ZMPT101B            */}
+    {/* In the freed below-HLK area. Measures motor V / I / power so   */}
+    {/* firmware can do current-based dry-run detection (amps drop when */}
+    {/* the pump loses prime) in addition to the probe-based check.    */}
+    {/*                                                                */}
+    {/* ⚠ REFERENCE TOPOLOGY — passive values + BL0942 digital-pin     */}
+    {/*   mapping are PLACEHOLDERS. Finalize against the BL0942 and     */}
+    {/*   ZMPT101B datasheets before fabrication:                       */}
+    {/*    - R_BUR (CT burden) sized to the chosen CT ratio for ~full   */}
+    {/*      scale at 15A; anti-alias RC on IP/IN.                      */}
+    {/*    - ZMPT primary series resistors rated for 230Vac (use 2 in   */}
+    {/*      series for voltage rating); secondary burden + RC to VP.   */}
+    {/*    - Confirm which BL0942 pins are UART RX/TX vs SPI in the      */}
+    {/*      datasheet; SEL pin selects the interface.                  */}
+    {/* Isolation: ZMPT101B + CT both provide galvanic isolation from   */}
+    {/* mains; keep the primary-side copper on the HV (left) side.      */}
+    {/* ============================================================ */}
+    {/* BL0942 metering IC (SOP14). VDD=3V3, IP/IN=current diff in,
+       VP=voltage in. Digital link on GPIO25/26 (free UART-capable pins). */}
+    <silkscreentext text="METER BL0942" pcbX={-52} pcbY={-9} anchorAlignment="center" fontSize={1} />
+    <BL0942
+      name="U_MTR"
+      schX={-6}
+      schY={-9}
+      pcbX={-52}
+      pcbY={-14}
+    />
+    <capacitor name="C_MTR" capacitance="100nF" footprint="0603" schX={-4} schY={-10} pcbX={-52} pcbY={-19} />
+    <trace from="U_MTR.VDD" to="net.V3V3" />
+    <trace from="U_MTR.GND" to="net.GND" />
+    <trace from="C_MTR.pin1" to="net.V3V3" />
+    <trace from="C_MTR.pin2" to="net.GND" />
+    {/* Digital interface to ESP32 (GPIO25/26). Verify RX/TX pin roles. */}
+    <trace from="U_MTR.A1" to="ESP_L.GPIO25" />
+    <trace from="U_MTR.A2_NCS" to="ESP_L.GPIO26" />
+
+    {/* ZMPT101B voltage transformer — mains voltage sense (isolated). */}
+    <ZMPT101B
+      name="U_VT"
+      schX={-9}
+      schY={-9}
+      pcbX={-72}
+      pcbY={-20}
+    />
+    {/* Primary: net.LIVE -> series Rs -> ZMPT primary -> net.NEUTRAL.
+       Two resistors in series share the 230Vac stress. */}
+    <resistor name="R_VT1" resistance="100k" footprint="0805" schX={-11} schY={-10} pcbX={-92} pcbY={-14} />
+    <resistor name="R_VT2" resistance="100k" footprint="0805" schX={-11} schY={-11} pcbX={-92} pcbY={-18} />
+    <trace from="net.LIVE" to="R_VT1.pin1" thickness="0.5mm" />
+    <trace from="R_VT1.pin2" to="R_VT2.pin1" thickness="0.5mm" />
+    <trace from="R_VT2.pin2" to="U_VT.pin1" thickness="0.5mm" />
+    <trace from="U_VT.pin2" to="net.NEUTRAL" thickness="0.5mm" />
+    {/* Secondary: burden across the output, feed to BL0942 VP. */}
+    <resistor name="R_VBUR" resistance="1k" footprint="0603" schX={-9} schY={-11} pcbX={-56} pcbY={-30} />
+    <trace from="U_VT.pin3" to="R_VBUR.pin1" />
+    <trace from="U_VT.pin4" to="R_VBUR.pin2" />
+    <trace from="R_VBUR.pin1" to="U_MTR.VP" />
+    <trace from="R_VBUR.pin2" to="net.GND" />
+
+    {/* J_CT: 2-pole terminal for the EXTERNAL current transformer.
+       CT clamps the motor Live wire off-board; its 2 leads land here.
+       Bottom connector row (y=-42), in the J_AC--J_DBG gap, faces out. */}
+    <silkscreentext text="CT" pcbX={-60} pcbY={-33} anchorAlignment="center" fontSize={1.2} />
+    <Terminal2P name="J_CT" pinLabels={{ pin1: "CT1", pin2: "CT2" }}
+      schX={-6} schY={-12} pcbX={-60} pcbY={-42} />
+    {/* Burden resistor converts CT secondary current -> voltage; RC anti-alias. */}
+    <resistor name="R_BUR" resistance="20" footprint="0603" schX={-7} schY={-13} pcbX={-60} pcbY={-32} />
+    <trace from="J_CT.CT1" to="R_BUR.pin1" />
+    <trace from="J_CT.CT2" to="R_BUR.pin2" />
+    <trace from="R_BUR.pin1" to="U_MTR.IP" />
+    <trace from="R_BUR.pin2" to="U_MTR.IN" />
 
     {/* ============================================================ */}
     {/* FLOAT SWITCH INPUTS (2x dry-contact, CAT6 pair 1+2)         */}
