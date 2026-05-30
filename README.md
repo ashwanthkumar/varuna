@@ -92,12 +92,29 @@ Target: ESP32 (Arduino or ESP-IDF). Flash via the DevKit USB; field updates via 
 
 ---
 
+## External DOL parts (not on the PCB — buy separately)
+
+These mount on the DIN rail alongside the board and carry the motor current.
+Pick a contactor rated **AC3 ≥ 15 A** and an overload sized to the motor FLA.
+
+| Part | Spec | Wires to | Buy |
+|------|------|----------|-----|
+| Contactor | LEYDEN CJX2-3211, 32 A AC-3, 230 V coil, 3-pole | coil A1/A2 → `J_COIL` | [amazon.in B0BZQNCKWY](https://www.amazon.in/gp/product/B0BZQNCKWY) |
+| Overload relay | MAGNUM MaK-1 2P, 13–21 A (dial to ~13 A) | 95-96 NC aux → `J_OL` | [amazon.in B0F5HTJWTT](https://www.amazon.in/gp/product/B0F5HTJWTT) |
+| MCB | 20 A Type-C (DB panel, upstream) | mains feed | local |
+
+> The overload clips onto the bottom of the CJX2 contactor (they mate). Set the
+> overload dial to the motor's nameplate full-load current (~12–13 A for 2 HP
+> single-phase). See `INSTALL.txt` §1–5 for the full wiring.
+
+---
+
 ## Installation (high level)
 
-Mount the PCB, contactor (CJX2-3211 32 A), and overload relay (MaK-1 2P, ~13 A) in
-one DIN-rail enclosure behind a 20 A MCB. Wire mains to `J_AC`, the contactor coil to
-`J_COIL`, the overload aux to `J_OL`, and the float/probe sensors over CAT6 to the
-bottom-edge terminals. **Full step-by-step + safety notes are in `INSTALL.txt`.**
+Mount the PCB, contactor, and overload relay (above) in one DIN-rail enclosure
+behind a 20 A MCB. Wire mains to `J_AC`, the contactor coil to `J_COIL`, the
+overload aux to `J_OL`, and the float/probe sensors over CAT6 to the bottom-edge
+terminals. **Full step-by-step + safety notes are in `INSTALL.txt`.**
 
 ⚠ 230 V mains — installation by a qualified electrician only.
 

@@ -16,7 +16,9 @@
   - MCB 2A Type-C ............ board supply protection (DB or panel)
   - MCB 20A Type-C ........... motor circuit protection (DB or panel)
   - Contactor: LEYDEN CJX2-3211 (32A AC-3, 220/230VAC coil, 3-pole)
+        buy: https://www.amazon.in/gp/product/B0BZQNCKWY
   - Overload : MAGNUM MaK-1 2P (13-21A) — clips under the contactor, dial ~13A
+        buy: https://www.amazon.in/gp/product/B0F5HTJWTT
   - SS probes x3 + float switches x2 in the tank/sump, wired back over CAT6
 
 ------------------------------------------------------------------------------

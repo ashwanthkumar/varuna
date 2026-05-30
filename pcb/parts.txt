@@ -19,10 +19,12 @@ J_OL     WJ500V-5.08-2P       C8465     Overload relay aux NC contact sense: OL 
 
 # ── EXTERNAL DOL components (DIN-rail, NOT on PCB — install in enclosure) ─────
 #  Contactor  : LEYDEN CJX2-3211, 32A AC-3, 220/230VAC 50Hz coil, 3-pole.
+#               BUY: https://www.amazon.in/gp/product/B0BZQNCKWY  (ASIN B0BZQNCKWY)
 #               Coil A1/A2 → J_COIL. For single-phase motor, parallel two poles
 #               for the Live conductor (1/L1+3/L2 → 2/T1+4/T2) for longer contact
 #               life; route Neutral through the third pole or straight.
 #  Overload   : MAGNUM MaK-1 2P, single-phase, 13-21A range. Clips under the
+#               BUY: https://www.amazon.in/gp/product/B0F5HTJWTT  (ASIN B0F5HTJWTT)
 #               CJX2 contactor. Set dial to ~13A (motor FLA for 2HP single-phase).
 #               95-96 NC aux contact → J_OL (trip sense to GPIO21).
 #  MCB        : 20A Type-C in DB panel (upstream, handles motor inrush).
