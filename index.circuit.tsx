@@ -75,16 +75,16 @@ export default () => (
     {/* ============================================================ */}
     {/* POWER:  AC mains in -> protection -> AC/DC -> 5V rail        */}
     {/* ============================================================ */}
-    {/* J_AC rotated 180 so pad order (L->R) is E, N, L — puts L nearest the
-       fuse/HLK and E at the far-left edge by the earth lug hole H1. */}
+    {/* J_AC at bottom-left edge (pcbRotation=0 → wire entry faces DOWN, out of board).
+       With rotation 0: pin1(L) at x=center-5=-85, pin2(N) at x=-80, pin3(E) at x=-75.
+       Aligned with sensor connectors at y=-42 for a clean bottom-edge connector row. */}
     <Terminal3P
       name="J_AC"
       pinLabels={AC_PINS}
       schX={-13}
       schY={6}
-      pcbRotation={180}
       pcbX={-80}
-      pcbY={44}
+      pcbY={-42}
     />
     {/* RV1 = TMOV14RP275E: 275Vac MOV across L-N (JLC C1528070).
        Clamps mains transients. No PCB fuse — upstream MCB in the DB panel
@@ -110,36 +110,40 @@ export default () => (
       pcbX={-72}
       pcbY={8}
     />
-    {/* Onboard power ON/OFF — SS12D10G3 SPDT slide switch breaks the 5V rail */}
+    {/* Onboard power ON/OFF — SS12D10G3 SPDT slide switch, pcbRotation=90 makes
+       it slide UP/DOWN (vertical) like a standard panel rocker/slider. */}
     <SS12D10G3
       name="SW1"
       pinLabels={PWR_SW_PINS}
       schX={-7}
       schY={6}
-      pcbX={-90}
-      pcbY={-22}
+      pcbRotation={90}
+      pcbX={-58}
+      pcbY={42}
     />
     <capacitor name="C1" capacitance="100uF" footprint="1206" schX={-13} schY={2.5} pcbX={-48} pcbY={6} />
     <capacitor name="C2" capacitance="100nF" footprint="0603" schX={-11} schY={2.5} pcbX={-48} pcbY={1} />
 
     {/* AC-side connectivity — HAND-ROUTED for 230V creepage.
-       L lane: x=-85, N lane: x=-93. Lane centre spacing = 8mm => edge gap
-       = 8 - 0.8 = 7.2mm (well above the 3mm minimum for 230Vac).
-       All mains copper stays on the HLK primary side (left of the module). */}
-    {/* L: J_AC.L (pin at -75,44) -> drop to y=35 above RV1 courtyard -> left to RV1.B
-       L lane centre-to-N lane centre = 18mm => edge gap = 17.2mm (well above 3mm min) */}
+       J_AC is now at the BOTTOM edge (pcbRotation=0, y=-42):
+         pin1(L) at x=-85, pin2(N) at x=-80, pin3(E) at x=-75.
+       L lane goes straight UP at x=-85 to RV1.B (y=28) — no N crossing.
+       N goes from (-80,-42) right to (-80,-35) then LEFT to x=-93 then UP.
+       L and N never cross because L is at x=-85 (left of N at x=-80).
+       Gap between L and N lanes: 8mm centre-to-centre = 7.2mm edge-to-edge. */}
+    {/* L: up from bottom pin, straight to RV1.B, then on to HLK.ACL */}
     <trace from="J_AC.L" to="RV1.B" thickness="0.8mm"
-      path={[{ x: -75, y: 44 }, { x: -75, y: 35 }, { x: -86.23, y: 35 }, { x: -86.23, y: 28 }]} />
+      path={[{ x: -85, y: -42 }, { x: -85, y: 28 }, { x: -86.23, y: 28 }]} />
     <trace from="RV1.B" to="U_PSU.ACL" thickness="0.8mm"
       path={[{ x: -86.23, y: 28 }, { x: -85, y: 28 }, { x: -85, y: 5 }, { x: -88.8, y: 5 }]} />
-    {/* N: J_AC.N (pin at -80,44) -> left to x=-93 -> down to RV1.A */}
+    {/* N: right then left to x=-93 lane, up to RV1.A */}
     <trace from="J_AC.N" to="RV1.A" thickness="0.8mm"
-      path={[{ x: -80, y: 44 }, { x: -93, y: 44 }, { x: -93, y: 28 }, { x: -88.77, y: 28 }]} />
+      path={[{ x: -80, y: -42 }, { x: -80, y: -35 }, { x: -93, y: -35 }, { x: -93, y: 28 }, { x: -88.77, y: 28 }]} />
     <trace from="RV1.A" to="U_PSU.ACN" thickness="0.8mm"
       path={[{ x: -88.77, y: 28 }, { x: -93, y: 28 }, { x: -93, y: 11 }, { x: -88.8, y: 11 }]} />
-    {/* E: J_AC.E (pin at -85,44) -> short stub, isolated from L/N */}
+    {/* E: short stub downward, away from L/N */}
     <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm"
-      path={[{ x: -85, y: 44 }, { x: -85, y: 40 }]} />
+      path={[{ x: -75, y: -42 }, { x: -75, y: -45 }]} />
     {/* DC-side: PSU 5V -> onboard slide switch -> board 5V rail */}
     <trace from="U_PSU.V5" to="SW1.P5_IN" />
     <trace from="SW1.P5_OUT" to="net.V5" />
@@ -204,7 +208,7 @@ export default () => (
       schX={8}
       schY={2}
       pcbX={32}
-      pcbY={18}
+      pcbY={2}
     />
     <trace from="ESP_R.GPIO23" to="U_DRV.IN1" />
     <trace from="ESP_R.GPIO22" to="U_DRV.IN2" />
@@ -214,8 +218,8 @@ export default () => (
     {/* RLY1 = START, RLY2 = STOP.  SRD-05VDC-SL-C (JLC C35449)         */}
     {/* No <group> wrapper — keep absolute pcbX/pcbY (see header note). */}
     {[
-      { name: "RLY1", drv: "OUT1", term: "J_START", py: 36, sy: 3 },
-      { name: "RLY2", drv: "OUT2", term: "J_STOP", py: 2, sy: 0.5 },
+      { name: "RLY1", drv: "OUT1", term: "J_START", py: 16, sy: 3 },
+      { name: "RLY2", drv: "OUT2", term: "J_STOP", py: -14, sy: 0.5 },
     ].map((r) => (
       <>
         <SRD_05VDC_SL_C
@@ -248,11 +252,82 @@ export default () => (
     {/* ============================================================ */}
     {/* STATUS LED (GPIO4)                                           */}
     {/* ============================================================ */}
-    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={22} pcbY={-10} />
-    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={28} pcbY={-10} />
+    {/* ============================================================ */}
+    {/* LEDs — indicator row along the top edge                     */}
+    {/* LED_PWR : always-on power indicator (5V rail, no GPIO)      */}
+    {/* LED1    : WiFi/system status (GPIO4)                        */}
+    {/* LED_MOTOR: motor running indicator (GPIO17)                 */}
+    {/* LED_FL1 : float switch 1 state (GPIO19)                    */}
+    {/* LED_FL2 : float switch 2 state (GPIO18)                    */}
+    {/* LED_PRB : probe sensor active (GPIO5)                       */}
+    {/* ============================================================ */}
+    {/* Power LED — always on */}
+    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={22} pcbY={44} />
+    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={28} pcbY={44} />
+    <trace from="R_PWR.pin1" to="net.V5" />
+    <trace from="R_PWR.pin2" to="LED_PWR.pin1" />
+    <trace from="LED_PWR.pin2" to="net.GND" />
+
+    {/* WiFi/status LED (GPIO4) */}
+    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={34} pcbY={44} />
+    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={40} pcbY={44} />
     <trace from="ESP_R.GPIO4" to="R_LED.pin1" />
     <trace from="R_LED.pin2" to="LED1.pin1" />
     <trace from="LED1.pin2" to="net.GND" />
+
+    {/* Motor running LED (GPIO17) */}
+    <resistor name="R_MOTOR" resistance="330" footprint="0603" schX={10} schY={-3} pcbX={46} pcbY={44} />
+    <led name="LED_MOTOR" color="yellow" footprint="0603" schX={11} schY={-3} pcbX={52} pcbY={44} />
+    <trace from="ESP_R.GPIO17" to="R_MOTOR.pin1" />
+    <trace from="R_MOTOR.pin2" to="LED_MOTOR.pin1" />
+    <trace from="LED_MOTOR.pin2" to="net.GND" />
+
+    {/* Float 1 sensor LED (GPIO19) */}
+    <resistor name="R_FL1" resistance="330" footprint="0603" schX={6} schY={-5} pcbX={58} pcbY={44} />
+    <led name="LED_FL1" color="blue" footprint="0603" schX={7} schY={-5} pcbX={64} pcbY={44} />
+    <trace from="ESP_R.GPIO19" to="R_FL1.pin1" />
+    <trace from="R_FL1.pin2" to="LED_FL1.pin1" />
+    <trace from="LED_FL1.pin2" to="net.GND" />
+
+    {/* Float 2 sensor LED (GPIO18) */}
+    <resistor name="R_FL2" resistance="330" footprint="0603" schX={8} schY={-5} pcbX={70} pcbY={44} />
+    <led name="LED_FL2" color="blue" footprint="0603" schX={9} schY={-5} pcbX={76} pcbY={44} />
+    <trace from="ESP_R.GPIO18" to="R_FL2.pin1" />
+    <trace from="R_FL2.pin2" to="LED_FL2.pin1" />
+    <trace from="LED_FL2.pin2" to="net.GND" />
+
+    {/* Probe sensor LED (GPIO5) */}
+    <resistor name="R_PRB" resistance="330" footprint="0603" schX={10} schY={-5} pcbX={82} pcbY={44} />
+    <led name="LED_PRB" color="blue" footprint="0603" schX={11} schY={-5} pcbX={88} pcbY={44} />
+    <trace from="ESP_R.GPIO5" to="R_PRB.pin1" />
+    <trace from="R_PRB.pin2" to="LED_PRB.pin1" />
+    <trace from="LED_PRB.pin2" to="net.GND" />
+
+    {/* ============================================================ */}
+    {/* BUTTONS                                                      */}
+    {/* BTN_PAIR : WiFi pairing mode (GPIO0 — boot pin, runtime OK) */}
+    {/* BTN_RST  : factory reset (GPIO16)                           */}
+    {/* Active-LOW (button shorts to GND), 10k pull-up + 100nF debounce */}
+    {/* ============================================================ */}
+    <pushbutton name="BTN_PAIR" schX={6} schY={-7} pcbX={22} pcbY={26} />
+    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={28} pcbY={26} />
+    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={34} pcbY={26} />
+    <trace from="BTN_PAIR.pin1" to="net.GND" />
+    <trace from="BTN_PAIR.pin2" to="R_BPAIR.pin2" />
+    <trace from="R_BPAIR.pin1" to="net.V3V3" />
+    <trace from="BTN_PAIR.pin2" to="ESP_R.GPIO0" />
+    <trace from="C_BPAIR.pin1" to="ESP_R.GPIO0" />
+    <trace from="C_BPAIR.pin2" to="net.GND" />
+
+    <pushbutton name="BTN_RST" schX={10} schY={-7} pcbX={40} pcbY={26} />
+    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={46} pcbY={26} />
+    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={52} pcbY={26} />
+    <trace from="BTN_RST.pin1" to="net.GND" />
+    <trace from="BTN_RST.pin2" to="R_BRST.pin2" />
+    <trace from="R_BRST.pin1" to="net.V3V3" />
+    <trace from="BTN_RST.pin2" to="ESP_R.GPIO16" />
+    <trace from="C_BRST.pin1" to="ESP_R.GPIO16" />
+    <trace from="C_BRST.pin2" to="net.GND" />
 
     {/* ============================================================ */}
     {/* FLOAT SWITCH INPUTS (2x dry-contact, CAT6 pair 1+2)         */}
@@ -364,9 +439,9 @@ export default () => (
     <trace from="RS_PR2.pin2" to="TVS_PR12.PR2" />
 
     {/* Probe 3 front-end — GPIO32 (normal GPIO, external pull-DOWN) */}
-    <resistor name="RD_PR3" resistance="10k" footprint="0603" schX={-8} schY={-8} pcbX={48} pcbY={-22} />
-    <resistor name="RS_PR3" resistance="220" footprint="0603" schX={-8} schY={-9.5} pcbX={48} pcbY={-27} />
-    <capacitor name="CF_PR3" capacitance="100nF" footprint="0603" schX={-7} schY={-8} pcbX={48} pcbY={-32} />
+    <resistor name="RD_PR3" resistance="10k" footprint="0603" schX={-8} schY={-8} pcbX={48} pcbY={-25} />
+    <resistor name="RS_PR3" resistance="220" footprint="0603" schX={-8} schY={-9.5} pcbX={48} pcbY={-30} />
+    <capacitor name="CF_PR3" capacitance="100nF" footprint="0603" schX={-7} schY={-8} pcbX={48} pcbY={-35} />
     <trace from="RD_PR3.pin1" to="ESP_L.GPIO32" />
     <trace from="RD_PR3.pin2" to="net.GND" />
     <trace from="CF_PR3.pin1" to="ESP_L.GPIO32" />
