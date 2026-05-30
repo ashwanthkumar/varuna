@@ -203,8 +203,8 @@ export default () => (
       pinLabels={ULN_PINS}
       schX={8}
       schY={2}
-      pcbX={40}
-      pcbY={22}
+      pcbX={32}
+      pcbY={18}
     />
     <trace from="ESP_R.GPIO23" to="U_DRV.IN1" />
     <trace from="ESP_R.GPIO22" to="U_DRV.IN2" />
@@ -215,7 +215,7 @@ export default () => (
     {/* No <group> wrapper — keep absolute pcbX/pcbY (see header note). */}
     {[
       { name: "RLY1", drv: "OUT1", term: "J_START", py: 36, sy: 3 },
-      { name: "RLY2", drv: "OUT2", term: "J_STOP", py: 6, sy: 0.5 },
+      { name: "RLY2", drv: "OUT2", term: "J_STOP", py: 2, sy: 0.5 },
     ].map((r) => (
       <>
         <SRD_05VDC_SL_C
@@ -223,7 +223,7 @@ export default () => (
           pinLabels={RELAY_PINS}
           schX={11}
           schY={r.sy}
-          pcbX={44}
+          pcbX={56}
           pcbY={r.py}
         />
         {/* coil: COILA -> 5V, COILB <- ULN open-collector output */}
@@ -236,7 +236,7 @@ export default () => (
           schX={14}
           schY={r.sy}
           pcbRotation={90}
-          pcbX={64}
+          pcbX={76}
           pcbY={r.py}
         />
         <trace from={`${r.term}.COM`} to={`${r.name}.COM`} />
@@ -248,8 +248,8 @@ export default () => (
     {/* ============================================================ */}
     {/* STATUS LED (GPIO4)                                           */}
     {/* ============================================================ */}
-    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={20} pcbY={32} />
-    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={26} pcbY={32} />
+    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={22} pcbY={-10} />
+    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={28} pcbY={-10} />
     <trace from="ESP_R.GPIO4" to="R_LED.pin1" />
     <trace from="R_LED.pin2" to="LED1.pin1" />
     <trace from="LED1.pin2" to="net.GND" />
@@ -266,22 +266,22 @@ export default () => (
     {/*  Float closes SW→GND → GPIO reads LOW                       */}
     {/* ============================================================ */}
     <Terminal2P name="J_FL1" pinLabels={{ pin1: "SW", pin2: "GND" }}
-      schX={-22} schY={-5} pcbX={-70} pcbY={-42} />
+      schX={-22} schY={-5} pcbX={-10} pcbY={-42} />
     <Terminal2P name="J_FL2" pinLabels={{ pin1: "SW", pin2: "GND" }}
-      schX={-18} schY={-5} pcbX={-56} pcbY={-42} />
+      schX={-18} schY={-5} pcbX={4} pcbY={-42} />
 
     {/* TVS_FL: PRTR5V0U2X protects both float lines */}
     <PRTR5V0U2X name="TVS_FL" pinLabels={TVS_FL_PINS}
-      schX={-20} schY={-7} pcbX={-63} pcbY={-32} />
+      schX={-20} schY={-7} pcbX={-3} pcbY={-32} />
     <trace from="TVS_FL.GND" to="net.GND" />
     <trace from="TVS_FL.VCC" to="net.V3V3" />
     <trace from="TVS_FL.FL1" to="J_FL1.SW" />
     <trace from="TVS_FL.FL2" to="J_FL2.SW" />
 
     {/* Float 1 front-end — GPIO36 (input-only, external pull-up) */}
-    <resistor name="RU_FL1" resistance="10k" footprint="0603" schX={-22} schY={-8} pcbX={-70} pcbY={-22} />
-    <resistor name="RS_FL1" resistance="220" footprint="0603" schX={-22} schY={-9.5} pcbX={-70} pcbY={-27} />
-    <capacitor name="CF_FL1" capacitance="100nF" footprint="0603" schX={-21} schY={-8} pcbX={-65} pcbY={-22} />
+    <resistor name="RU_FL1" resistance="10k" footprint="0603" schX={-22} schY={-8} pcbX={-19} pcbY={-22} />
+    <resistor name="RS_FL1" resistance="220" footprint="0603" schX={-22} schY={-9.5} pcbX={-19} pcbY={-27} />
+    <capacitor name="CF_FL1" capacitance="100nF" footprint="0603" schX={-21} schY={-8} pcbX={-8} pcbY={-22} />
     <trace from="RU_FL1.pin1" to="net.V3V3" />
     <trace from="RU_FL1.pin2" to="ESP_L.GPIO36" />
     <trace from="CF_FL1.pin1" to="ESP_L.GPIO36" />
@@ -291,9 +291,9 @@ export default () => (
     <trace from="J_FL1.GND" to="net.GND" />
 
     {/* Float 2 front-end — GPIO39 (input-only, external pull-up) */}
-    <resistor name="RU_FL2" resistance="10k" footprint="0603" schX={-18} schY={-8} pcbX={-56} pcbY={-22} />
-    <resistor name="RS_FL2" resistance="220" footprint="0603" schX={-18} schY={-9.5} pcbX={-56} pcbY={-27} />
-    <capacitor name="CF_FL2" capacitance="100nF" footprint="0603" schX={-17} schY={-8} pcbX={-51} pcbY={-22} />
+    <resistor name="RU_FL2" resistance="10k" footprint="0603" schX={-18} schY={-8} pcbX={4} pcbY={-22} />
+    <resistor name="RS_FL2" resistance="220" footprint="0603" schX={-18} schY={-9.5} pcbX={4} pcbY={-27} />
+    <capacitor name="CF_FL2" capacitance="100nF" footprint="0603" schX={-17} schY={-8} pcbX={9} pcbY={-22} />
     <trace from="RU_FL2.pin1" to="net.V3V3" />
     <trace from="RU_FL2.pin2" to="ESP_L.GPIO39" />
     <trace from="CF_FL2.pin1" to="ESP_L.GPIO39" />
@@ -317,11 +317,11 @@ export default () => (
     {/*  ⚠ GPIO34/35 are input-only on ESP32 — no internal pull.    */}
     {/* ============================================================ */}
     <Terminal4P name="J_PR" pinLabels={PROBE_PINS}
-      schX={-14} schY={-5} pcbX={-35} pcbY={-42} />
+      schX={-14} schY={-5} pcbX={22} pcbY={-42} />
 
     {/* TVS_PR12: protects probe lines 1 + 2 */}
     <PRTR5V0U2X name="TVS_PR12" pinLabels={TVS_PR12_PINS}
-      schX={-14} schY={-7} pcbX={-44} pcbY={-32} />
+      schX={-14} schY={-7} pcbX={16} pcbY={-32} />
     <trace from="TVS_PR12.GND" to="net.GND" />
     <trace from="TVS_PR12.VCC" to="net.V3V3" />
     <trace from="TVS_PR12.PR1" to="J_PR.PR1" />
@@ -329,7 +329,7 @@ export default () => (
 
     {/* TVS_PR3C: protects probe line 3 + COM excitation */}
     <PRTR5V0U2X name="TVS_PR3C" pinLabels={TVS_PR3C_PINS}
-      schX={-10} schY={-7} pcbX={-28} pcbY={-32} />
+      schX={-10} schY={-7} pcbX={30} pcbY={-32} />
     <trace from="TVS_PR3C.GND" to="net.GND" />
     <trace from="TVS_PR3C.VCC" to="net.V3V3" />
     <trace from="TVS_PR3C.PR3" to="J_PR.PR3" />
@@ -337,14 +337,14 @@ export default () => (
 
     {/* Probe excitation: GPIO33 → 1kΩ → COM electrode */}
     <resistor name="R_EXC" resistance="1k" footprint="0603"
-      schX={-10} schY={-9} pcbX={-32} pcbY={-27} />
+      schX={-10} schY={-9} pcbX={36} pcbY={-27} />
     <trace from="ESP_L.GPIO33" to="R_EXC.pin1" />
     <trace from="R_EXC.pin2" to="TVS_PR3C.COM" />
 
     {/* Probe 1 front-end — GPIO34 (input-only, external pull-DOWN) */}
-    <resistor name="RD_PR1" resistance="10k" footprint="0603" schX={-16} schY={-8} pcbX={-42} pcbY={-22} />
-    <resistor name="RS_PR1" resistance="220" footprint="0603" schX={-16} schY={-9.5} pcbX={-42} pcbY={-27} />
-    <capacitor name="CF_PR1" capacitance="100nF" footprint="0603" schX={-15} schY={-8} pcbX={-37} pcbY={-22} />
+    <resistor name="RD_PR1" resistance="10k" footprint="0603" schX={-16} schY={-8} pcbX={18} pcbY={-22} />
+    <resistor name="RS_PR1" resistance="220" footprint="0603" schX={-16} schY={-9.5} pcbX={18} pcbY={-27} />
+    <capacitor name="CF_PR1" capacitance="100nF" footprint="0603" schX={-15} schY={-8} pcbX={23} pcbY={-22} />
     <trace from="RD_PR1.pin1" to="ESP_L.GPIO34" />
     <trace from="RD_PR1.pin2" to="net.GND" />
     <trace from="CF_PR1.pin1" to="ESP_L.GPIO34" />
@@ -353,9 +353,9 @@ export default () => (
     <trace from="RS_PR1.pin2" to="TVS_PR12.PR1" />
 
     {/* Probe 2 front-end — GPIO35 (input-only, external pull-DOWN) */}
-    <resistor name="RD_PR2" resistance="10k" footprint="0603" schX={-12} schY={-8} pcbX={-28} pcbY={-22} />
-    <resistor name="RS_PR2" resistance="220" footprint="0603" schX={-12} schY={-9.5} pcbX={-28} pcbY={-27} />
-    <capacitor name="CF_PR2" capacitance="100nF" footprint="0603" schX={-11} schY={-8} pcbX={-23} pcbY={-27} />
+    <resistor name="RD_PR2" resistance="10k" footprint="0603" schX={-12} schY={-8} pcbX={36} pcbY={-22} />
+    <resistor name="RS_PR2" resistance="220" footprint="0603" schX={-12} schY={-9.5} pcbX={42} pcbY={-27} />
+    <capacitor name="CF_PR2" capacitance="100nF" footprint="0603" schX={-11} schY={-8} pcbX={42} pcbY={-22} />
     <trace from="RD_PR2.pin1" to="ESP_L.GPIO35" />
     <trace from="RD_PR2.pin2" to="net.GND" />
     <trace from="CF_PR2.pin1" to="ESP_L.GPIO35" />
@@ -364,10 +364,9 @@ export default () => (
     <trace from="RS_PR2.pin2" to="TVS_PR12.PR2" />
 
     {/* Probe 3 front-end — GPIO32 (normal GPIO, external pull-DOWN) */}
-    {/* Probe 3 passives shifted left to clear ESP_L courtyard (right edge x=-11.2) */}
-    <resistor name="RD_PR3" resistance="10k" footprint="0603" schX={-8} schY={-8} pcbX={-20} pcbY={-22} />
-    <resistor name="RS_PR3" resistance="220" footprint="0603" schX={-8} schY={-9.5} pcbX={-20} pcbY={-27} />
-    <capacitor name="CF_PR3" capacitance="100nF" footprint="0603" schX={-7} schY={-8} pcbX={-33} pcbY={-22} />
+    <resistor name="RD_PR3" resistance="10k" footprint="0603" schX={-8} schY={-8} pcbX={48} pcbY={-22} />
+    <resistor name="RS_PR3" resistance="220" footprint="0603" schX={-8} schY={-9.5} pcbX={48} pcbY={-27} />
+    <capacitor name="CF_PR3" capacitance="100nF" footprint="0603" schX={-7} schY={-8} pcbX={48} pcbY={-32} />
     <trace from="RD_PR3.pin1" to="ESP_L.GPIO32" />
     <trace from="RD_PR3.pin2" to="net.GND" />
     <trace from="CF_PR3.pin1" to="ESP_L.GPIO32" />
@@ -379,8 +378,8 @@ export default () => (
     {/* Mounting holes (M3) — clear board corners                    */}
     {/* ============================================================ */}
     <hole name="H1" diameter="3.2mm" pcbX={-95} pcbY={46} />
-    <hole name="H2" diameter="3.2mm" pcbX={70} pcbY={46} />
+    <hole name="H2" diameter="3.2mm" pcbX={95} pcbY={46} />
     <hole name="H3" diameter="3.2mm" pcbX={-95} pcbY={-46} />
-    <hole name="H4" diameter="3.2mm" pcbX={70} pcbY={-46} />
+    <hole name="H4" diameter="3.2mm" pcbX={95} pcbY={-46} />
   </board>
 )
