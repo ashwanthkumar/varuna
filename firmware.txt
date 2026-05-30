@@ -122,22 +122,26 @@ GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/
 # Update LED_FL1 / LED_FL2 to mirror the confirmed sensor state.
 
 # ─────────────────────────────────────────────────────────────
-# MOTOR CONTROL (L&T MK1 DOL starter, remote pushbutton emulation)
+# MOTOR CONTROL (direct DOL contactor coil drive)
 # ─────────────────────────────────────────────────────────────
 #
+# RLY_MOTOR (driven by GPIO23 via ULN2003) switches the contactor COIL.
+# HELD output, NOT a pulse: GPIO23 HIGH = coil energised = motor runs.
+#
 # START:
-#   1. Set GPIO17 (LED_MOTOR) HIGH
-#   2. Set GPIO23 HIGH → wait 400ms → set GPIO23 LOW  (START pulse to MK1)
-#   3. MK1 latches ON via its own auxiliary contact — motor runs
+#   1. Check GPIO21 (overload) reads LOW (healthy) — abort if HIGH
+#   2. Check GPIO34 (sump LOW probe) reads HIGH (water present) — abort if LOW
+#   3. Set GPIO23 HIGH  (contactor pulls in; inrush handled by the contactor)
+#   4. Set GPIO17 (LED_MOTOR) HIGH
 #
 # STOP:
-#   1. Set GPIO23 LOW (ensure START relay is open first)
-#   2. Set GPIO22 HIGH → wait 400ms → set GPIO22 LOW  (STOP pulse to MK1)
-#   3. Set GPIO17 (LED_MOTOR) LOW
-#   4. Wait 2s minimum before allowing another START
+#   1. Set GPIO23 LOW   (contactor drops out, motor stops)
+#   2. Set GPIO17 (LED_MOTOR) LOW
 #
-# NEVER energise GPIO23 and GPIO22 simultaneously.
-# On boot: issue a STOP pulse before anything else (MK1 may be latched ON from last session).
+# Single relay, held while running — no pulse timing, no two-relay mutex.
+# OVERLOAD TRIP (GPIO21): poll while running; if HIGH (NC opened = tripped),
+# set GPIO23 LOW immediately, latch fault, require manual/button reset.
+# On boot: set GPIO23 LOW before anything else (contactor must default OFF).
 
 # ─────────────────────────────────────────────────────────────
 # AUTOMATION LOGIC
