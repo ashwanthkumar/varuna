@@ -51,6 +51,7 @@ import { SS12D10G3 } from "./imports/SS12D10G3"
 import { TMOV14RP275E } from "./imports/TMOV14RP275E"
 import { PRTR5V0U2X } from "./imports/PRTR5V0U2X"
 import { TS_1101_C_W as TactileButton } from "./imports/TS_1101_C_W"
+import { S3B_XH_A_LF__SN_ as DebugConn } from "./imports/S3B_XH_A_LF__SN_"
 
 // Semantic pin-label overrides (spread last in each import, so these win).
 const RELAY_PINS = { pin1: "NC", pin2: "COILA", pin3: "COILB", pin4: "NO", pin5: "COM" } as const
@@ -237,30 +238,30 @@ export default () => (
     {/* The DevKit's own USB still handles flashing; this is read/log  */}
     {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
     {/* ============================================================ */}
-    {/* J_DBG on the SAME bottom-edge row as J_AC/J_FL (pads at y=-42),
-       centred in the gap between J_AC (right edge -72) and J_FL1 (left edge
-       -16): gap centre x=-44. Pins run horizontally (3-in-a-row), facing the
-       bottom edge so a USB-TTL lead plugs in from below the enclosure.
-       Use a RIGHT-ANGLE male header so the connector exits toward the edge.
-       3 pins is sufficient — flashing uses the DevKit USB; this is a
-       serial-log tap only (TX/RX/GND). */}
-    <silkscreentext text="DBG" pcbX={-44} pcbY={-35} anchorAlignment="center" fontSize={1.2} />
-    <pinheader
+    {/* J_DBG = S3B-XH-A (JST-XH 3-pin RIGHT-ANGLE, JLC C157928). Latching,
+       polarized, side-entry. Footprint: pads at local y=0, body extends +y
+       to +9.6 with the mating OPENING at the far +y end. pcbRotation=0 keeps
+       the opening facing the board INTERIOR (top) so the debug lead plugs in
+       from ABOVE the board surface — no connector depth below the PCB when
+       mounted, and nothing protrudes past the bottom mounting edge.
+       pcbY=-44.9 puts the connector BOTTOM edge at y=-47.6, flush on the same
+       bottom line as J_AC/J_FL/J_PR. Centred in the J_AC--J_FL1 gap at x=-44.
+       pin1=TX(GPIO1), pin2=RX(GPIO3), pin3=GND. 3 pins is sufficient —
+       flashing uses the DevKit USB; this is a serial-log tap only. */}
+    <silkscreentext text="DBG TX RX G" pcbX={-44} pcbY={-33} anchorAlignment="center" fontSize={1.2} />
+    <DebugConn
       name="J_DBG"
-      pinCount={3}
-      pitch="2.54mm"
-      gender="male"
-      rightAngle
-      showSilkscreenPinLabels
-      pinLabels={["TX", "RX", "GND"]}
+      pinLabels={{ pin1: "TX", pin2: "RX", pin3: "GND" }}
       schX={4}
       schY={-6}
+      pcbRotation={0}
       pcbX={-44}
-      pcbY={-42}
+      pcbY={-44.9}
     />
     <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
     <trace from="J_DBG.RX" to="ESP_R.GPIO3" />
     <trace from="J_DBG.GND" to="net.GND" />
+    {/* ESP_R debug-row note moved with J_DBG below */}
 
     {/* ============================================================ */}
     {/* DRIVER + RELAY:  switch the external DOL contactor coil      */}
