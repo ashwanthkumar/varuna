@@ -20,7 +20,7 @@ varuna-ts/
 │   ├── parts.txt         #   bill of materials (JLCPCB C-numbers)
 │   ├── package.json      #   tscircuit CLI project
 │   └── tscircuit.config.json
-├── firmware/             # (future) ESP32 firmware — see firmware.txt for the spec
+├── firmware/             # ESP32 firmware (PlatformIO) — web UI + AUTO/semi-auto control
 ├── enclosure/            # OpenSCAD 3D-printable enclosure (base + lid)
 ├── firmware.txt          # firmware requirements / GPIO map / control logic
 ├── INSTALL.txt           # panel wiring & installation guide (electrician-facing)
@@ -31,9 +31,10 @@ varuna-ts/
 └── README.md             # this file
 ```
 
-> `firmware/` is a placeholder; `firmware.txt` is the current firmware
-> *specification* (no code yet). `enclosure/` has a parametric OpenSCAD model
-> (single box: PCB + DIN rail) — see `enclosure/README.md`.
+> `firmware.txt` is the firmware *specification*; `firmware/` is the PlatformIO
+> implementation of it (Arduino/ESP32) — see `firmware/README.md`. `enclosure/`
+> has a parametric OpenSCAD model (single box: PCB + DIN rail) — see
+> `enclosure/README.md`.
 
 ---
 
@@ -71,8 +72,9 @@ cd pcb && npm install
 **Enclosure work** — OpenSCAD + the BOSL2 library (clone instructions per OS in
 [`enclosure/README.md`](enclosure/README.md#prerequisites-one-time-setup)).
 
-**Firmware work** — not wired up yet (`firmware.txt` is the spec; no toolchain
-to install until the code lands in `firmware/`).
+**Firmware work** — [PlatformIO](https://platformio.org/) (`pip install platformio`
+or the VS Code extension). Build/flash from `firmware/`:
+`pio run -t upload && pio device monitor`.
 
 ---
 
@@ -107,9 +109,20 @@ tsci check placement
 
 ## Firmware
 
-Not yet written — `firmware.txt` is the complete spec: GPIO map, probe AC-excitation
-protocol, contactor hold-logic, automation/dry-run rules, LED/button behaviour,
-connectivity (MQTT/OTA), safety rules, and the programming/flashing notes.
+Implemented in [`firmware/`](firmware/) (PlatformIO / Arduino-ESP32) — see
+[`firmware/README.md`](firmware/README.md). `firmware.txt` remains the spec it's
+built from: GPIO map, probe AC-excitation protocol, contactor hold-logic,
+automation/dry-run rules, LED/button behaviour, connectivity (MQTT/OTA), and
+safety rules.
+
+Highlights:
+- **Automatic** level control and **semi-automatic** force-start (runs to an exit
+  condition, no auto-restart) — switchable from the web UI.
+- Self-contained **web dashboard** served from the ESP32 (status, control,
+  config) — no internet or external assets required.
+- **Config button** (hold 3 s) opens a WiFi setup portal; **reset button**
+  (hold 5 s) restores factory settings.
+- All 5 status LEDs driven per spec; optional MQTT; guarded OTA; 30 s watchdog.
 
 Target: ESP32 (Arduino or ESP-IDF). Flash via the DevKit USB; field updates via OTA.
 

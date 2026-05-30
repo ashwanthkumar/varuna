@@ -158,6 +158,7 @@ namespace Led {
 // caller can bypass them.
 void startMotor(const char* why) {
   if (S.motor) return;
+  if (S.fault != Fault::NONE) { Serial.println("[motor] start blocked: latched fault"); return; }
   if (S.overload)  { Serial.println("[motor] start blocked: overload"); return; }
   if (!S.pr1)      { Serial.println("[motor] start blocked: dry sump"); return; }
   if (millis() < S.dryLockUntil) { Serial.println("[motor] start blocked: dry lockout"); return; }
@@ -407,7 +408,7 @@ void setupWebServer() {
   server.on("/api/cmd",    HTTP_GET,  handleCmd);
   server.on("/api/config", HTTP_GET,  handleConfigGet);
   server.on("/api/config", HTTP_POST, handleConfigPost);
-  server.onNotFound([]{ server.sendHeader("Location", "/"); server.send(302); });
+  server.onNotFound([]{ server.sendHeader("Location", "/"); server.send(302, "text/plain", ""); });
   server.begin();
   Serial.println("[web] server on :80");
 }
@@ -529,9 +530,14 @@ void setup() {
   pinMode(PIN_OVERLOAD, INPUT);
   pinMode(PIN_BTN_PAIR, INPUT_PULLUP); pinMode(PIN_BTN_RST, INPUT_PULLUP);
 
-  // Watchdog (30s) — feed it in loop().
+  // Watchdog (30s) — feed it in loop(). The init API changed in core 3.x.
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+  esp_task_wdt_config_t wdtCfg = { .timeout_ms = 30000, .idle_core_mask = 0, .trigger_panic = true };
+  esp_task_wdt_reconfigure(&wdtCfg);   // loopTask is already subscribed by the core
+#else
   esp_task_wdt_init(30, true);
   esp_task_wdt_add(NULL);
+#endif
 
   ConfigStore::load();
   S.mode = gConfig.defaultMode;
