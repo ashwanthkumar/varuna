@@ -31,6 +31,9 @@ yarn-error.log*
 # tscircuit snapshot images (regenerate with `tsci snapshot`)
 __snapshots__/
 
+# BOSL2 wiki mirror (offline OpenSCAD docs — fetch on demand, see enclosure/README.md)
+enclosure/docs/
+
 # Claude Code session state (machine-specific)
 .claude/scheduled_tasks.lock
 .claude/settings.local.json

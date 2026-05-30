@@ -12,6 +12,9 @@
 ------------------------------------------------------------------------------
  1. WHAT'S IN THE PANEL
 ------------------------------------------------------------------------------
+  - Enclosure: 3D-printed base + lid (see ../enclosure/README.md for the
+    hardware list — M3 self-tap screws, hinge pin, 35mm DIN rail length,
+    grommets/glands — and the step-by-step assembly order).
   - Varuna PCB (this board), with ESP32 DevKit plugged in
   - MCB 2A Type-C ............ board supply protection (DB or panel)
   - MCB 20A Type-C ........... motor circuit protection (DB or panel)
@@ -20,6 +23,10 @@
   - Overload : MAGNUM MaK-1 2P (13-21A) — clips under the contactor, dial ~13A
         buy: https://www.amazon.in/gp/product/B0F5HTJWTT
   - SS probes x3 + float switches x2 in the tank/sump, wired back over CAT6
+
+  Cable entries on the printed enclosure:
+    - WEST wall  : MAINS in   (L/N/E from supply -> MCB)
+    - SOUTH wall : MOTOR out  (right of sensors) + 4x sensor/UART slots
 
 ------------------------------------------------------------------------------
  2. BOARD POWER  (J_AC — 3-pole terminal, bottom-left)
