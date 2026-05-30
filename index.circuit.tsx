@@ -229,8 +229,11 @@ export default () => (
     {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
     {/* ============================================================ */}
     {/* J_DBG centred in the bottom gap between J_AC (right edge -72) and
-       J_FL1 (left edge -16): gap centre x=-44. Above the connector row. */}
-    <silkscreentext text="DBG TX RX G" pcbX={-44} pcbY={-9} anchorAlignment="center" fontSize={1.2} />
+       J_FL1 (left edge -16): gap centre x=-44. pcbRotation=90 so the 3 pins
+       run vertically and the connector faces the bottom edge for a clip-on
+       USB-TTL adapter (TX/RX/GND). 3 pins is sufficient — flashing uses the
+       DevKit USB; this is a serial-log tap only. */}
+    <silkscreentext text="DBG" pcbX={-49} pcbY={-15} anchorAlignment="center" fontSize={1.2} />
     <pinheader
       name="J_DBG"
       pinCount={3}
@@ -240,8 +243,9 @@ export default () => (
       pinLabels={["TX", "RX", "GND"]}
       schX={4}
       schY={-6}
+      pcbRotation={90}
       pcbX={-44}
-      pcbY={-15}
+      pcbY={-16}
     />
     <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
     <trace from="J_DBG.RX" to="ESP_R.GPIO3" />
