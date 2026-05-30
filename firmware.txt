@@ -3,138 +3,208 @@
 # Framework: Arduino or ESP-IDF (Arduino recommended for faster iteration)
 
 # ─────────────────────────────────────────────────────────────
-# GPIO PINOUT
+# GPIO PINOUT — COMPLETE MAP
 # ─────────────────────────────────────────────────────────────
 
-GPIO36  INPUT  Float switch 1 — Overhead tank LOW  (pull-up, reads LOW when float triggers)
-GPIO39  INPUT  Float switch 2 — Overhead tank HIGH (pull-up, reads LOW when float triggers)
-GPIO34  INPUT  SS Probe 1 — LOW level              (pull-DOWN external, reads HIGH when water bridges probe to COM)
-GPIO35  INPUT  SS Probe 2 — MID level              (pull-DOWN external, reads HIGH when water bridges probe to COM)
-GPIO32  INPUT  SS Probe 3 — HIGH level             (pull-DOWN external, reads HIGH when water bridges probe to COM)
-GPIO33  OUTPUT Probe AC excitation output           (drives probe common electrode through 1kΩ R_EXC)
-GPIO23  OUTPUT Relay 1 — START (ULN2003 IN1)       (active HIGH fires relay → momentary START pulse to MK1)
-GPIO22  OUTPUT Relay 2 — STOP  (ULN2003 IN2)       (active HIGH fires relay → momentary STOP pulse to MK1)
-GPIO4   OUTPUT Status LED                           (active HIGH = ON)
+# INPUTS (sensors)
+GPIO36  INPUT  Float switch 1 — Overhead tank LOW      (pull-UP board, reads LOW when float triggers)
+GPIO39  INPUT  Float switch 2 — Overhead tank HIGH     (pull-UP board, reads LOW when float triggers)
+GPIO34  INPUT  SS Probe 1 — Sump LOW level             (pull-DOWN board, reads HIGH when water present during excitation)
+GPIO35  INPUT  SS Probe 2 — Sump MID level             (pull-DOWN board, reads HIGH when water present during excitation)
+GPIO32  INPUT  SS Probe 3 — Sump HIGH level            (pull-DOWN board, reads HIGH when water present during excitation)
 
-# NOTE: GPIO36/39/34/35 are INPUT-ONLY on ESP32 — do NOT configure them as OUTPUT.
-# NOTE: GPIO34/35 have NO internal pull-up or pull-down — they MUST be read with
-#       external pull-DOWN resistors (10k to GND) already on the board.
-# NOTE: GPIO36/39 have NO internal pull-up — they MUST be read with external
-#       pull-UP resistors (10k to V3V3) already on the board.
+# OUTPUTS (motor control)
+GPIO33  OUTPUT Probe AC excitation                     (pulse HIGH briefly to drive probe common; NEVER leave permanently HIGH)
+GPIO23  OUTPUT Relay 1 START (ULN2003 IN1)             (active HIGH, momentary 300–500ms pulse to MK1 remote START)
+GPIO22  OUTPUT Relay 2 STOP  (ULN2003 IN2)             (active HIGH, momentary 300–500ms pulse to MK1 remote STOP)
+
+# OUTPUTS (LEDs — all active HIGH, GPIO-controlled)
+GPIO4   OUTPUT LED1    — WiFi / system status (green)  (slow blink=connected, fast blink=fault, solid=pump running)
+GPIO17  OUTPUT LED_MOTOR — Motor running (yellow)      (HIGH while pump is ON; cleared immediately after STOP pulse)
+GPIO19  OUTPUT LED_FL1  — Float switch 1 state (blue)  (mirrors GPIO36: HIGH when float is triggered / tank LOW)
+GPIO18  OUTPUT LED_FL2  — Float switch 2 state (blue)  (mirrors GPIO39: HIGH when float is triggered / tank HIGH)
+GPIO5   OUTPUT LED_PRB  — Probe water detected (blue)  (HIGH when any probe reads water during excitation cycle)
+# LED_PWR (red) is hardware-only: always on when 5V rail is live. No GPIO needed.
+
+# INPUTS (buttons — active LOW, external pull-up + 100nF debounce on board)
+GPIO0   INPUT  BTN_PAIR — WiFi pairing mode            (hold 3s → enter SmartConfig / BLE provisioning)
+GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/WiFi credentials, reboot)
+
+# NOTE: GPIO36/39/34/35 are INPUT-ONLY on ESP32 — never configure as OUTPUT.
+# NOTE: GPIO34/35 have NO internal pull config — external pull-DOWN is on the board.
+# NOTE: GPIO36/39 have NO internal pull config — external pull-UP is on the board.
+# NOTE: GPIO0 is the boot-mode pin. Holding LOW at power-on enters flashing mode.
+#       For BTN_PAIR: only act on it AFTER boot is complete (≥2s after startup).
+# NOTE: GPIO5 goes HIGH briefly at boot — LED_PRB will flash once at power-on. Harmless.
+# NOTE: LED_PWR (red, always on) has no GPIO — it is wired directly to the 5V rail
+#       through a 1kΩ resistor. It turns off only when SW1 (hardware power switch) is off.
+
+# ─────────────────────────────────────────────────────────────
+# LED BEHAVIOUR GUIDE
+# ─────────────────────────────────────────────────────────────
+#
+# LED_PWR (red, hardware)
+#   ON  → board has 5V power (SW1 is on, HLK is running)
+#   OFF → board is powered off
+#
+# LED1 (green, GPIO4) — system status
+#   Solid ON        → pump is currently running
+#   Slow blink 1Hz  → idle, WiFi connected, automation active
+#   Fast blink 4Hz  → fault: dry-run protection, WiFi lost, or sensor error
+#   Double-flash    → pairing mode active (BTN_PAIR pressed)
+#
+# LED_MOTOR (yellow, GPIO17) — motor state
+#   ON  → pump motor is running (MK1 latched ON)
+#   OFF → motor stopped
+#   Set HIGH immediately after START pulse; clear immediately after STOP pulse.
+#
+# LED_FL1 (blue, GPIO19) — float switch 1 (tank LOW sensor)
+#   ON  → float has triggered — overhead tank is LOW, pump should run
+#   OFF → float open — tank is adequately filled
+#
+# LED_FL2 (blue, GPIO18) — float switch 2 (tank HIGH sensor)
+#   ON  → float has triggered — overhead tank is FULL, pump must stop
+#   OFF → tank not yet full
+#
+# LED_PRB (blue, GPIO5) — probe sensor
+#   ON  → at least one SS probe is detecting water in the sump
+#   OFF → sump is empty (dry-run condition — pump must NOT run)
+#   Update this LED after each excitation cycle (every ~100ms).
+
+# ─────────────────────────────────────────────────────────────
+# BUTTON BEHAVIOUR
+# ─────────────────────────────────────────────────────────────
+#
+# BTN_PAIR (GPIO0) — WiFi pairing
+#   Short press (<1s):  ignored (debounce)
+#   Hold 3s:            enter WiFi provisioning (SmartConfig or BLE pairing)
+#                       Flash LED1 double-blink pattern while waiting for credentials
+#                       Timeout after 3 minutes → reboot with existing credentials
+#
+# BTN_RST (GPIO16) — factory reset
+#   Hold 5s:            erase WiFi credentials from NVS, clear all stored config
+#                       Flash LED1 fast 10× to confirm, then reboot
+#   Safety: require hold ≥5s to prevent accidental reset
+#   DO NOT erase firmware — only user config/credentials
 
 # ─────────────────────────────────────────────────────────────
 # PROBE AC EXCITATION — CRITICAL FOR SS PROBE LONGEVITY
 # ─────────────────────────────────────────────────────────────
 #
-# The SS probe electrodes are connected to GPIO33 via a 1kΩ resistor (R_EXC).
-# NEVER leave GPIO33 permanently HIGH — this creates a DC current through the
-# water which causes electrolysis and corrodes the SS probes over weeks/months.
+# SS probe electrodes are connected via GPIO33 → 1kΩ R_EXC → J_PR.COM.
+# NEVER leave GPIO33 permanently HIGH — DC through water causes electrolysis
+# and corrodes the SS probes over weeks/months.
 #
-# Use synchronous pulsed excitation:
+# Synchronous pulsed excitation cycle (repeat every ≥100ms):
 #   1. Set GPIO33 HIGH
-#   2. Wait 1–5ms for signal to settle (accounts for 30–40m cable capacitance)
+#   2. Wait 1–5ms  (settles 30–40m CAT6 capacitance; RC≈2.5µs so 1ms is ample)
 #   3. Read GPIO34, GPIO35, GPIO32
 #   4. Set GPIO33 LOW
-#   5. Wait ≥100ms before next reading (keeps duty cycle low, ~1–5%)
+#   5. Update LED_PRB based on probe readings
+#   6. Wait remaining time to complete ≥100ms cycle
 #
-# When GPIO33 is HIGH and water bridges COM to a probe:
-#   - Current path: GPIO33 → R_EXC → water → probe wire → RS_PRx → GPIO
-#   - GPIO reads HIGH (above VIH threshold)
-# When GPIO33 is LOW or probe is dry:
-#   - Pull-down (RD_PRx, 10k) holds GPIO LOW
-#
-# Cable capacitance note: 30–40m CAT6 ≈ 50–60pF/m ≈ 1.5–2.5nF total.
-# With R_EXC=1kΩ, RC time constant ≈ 2.5µs — 1ms settle time is ample.
+# Current path when water present: GPIO33 → R_EXC(1k) → water → probe → RS_PRx → GPIO
+# Pull-down (RD_PRx, 10k) holds GPIO LOW when dry or excitation is off.
 
 # ─────────────────────────────────────────────────────────────
 # FLOAT SWITCH READING
 # ─────────────────────────────────────────────────────────────
 #
-# Float switches are dry contacts — read as simple digital inputs.
-# Board has 10k pull-up + 220Ω series + 100nF debounce.
-# Float open   → GPIO HIGH (pull-up dominates)
-# Float closed → GPIO LOW  (contact shorts to GND)
+# Float switches = dry contacts. Board has 10k pull-up + 220Ω series + 100nF debounce.
+#   Float open   → GPIO HIGH (pull-up dominates) — normal / not triggered
+#   Float closed → GPIO LOW  (contact shorts to GND) — triggered
 #
-# Apply software debounce: confirm stable reading for ≥50ms before acting.
-# Do NOT use hardware interrupt on these pins — poll at 10Hz is sufficient.
+# Software debounce: confirm stable reading for ≥50ms before acting on state change.
+# Poll at 10Hz; do not use hardware interrupts on these pins.
+# Update LED_FL1 / LED_FL2 to mirror the confirmed sensor state.
 
 # ─────────────────────────────────────────────────────────────
-# MOTOR CONTROL LOGIC (L&T MK1 DOL starter via relay dry contacts)
+# MOTOR CONTROL (L&T MK1 DOL starter, remote pushbutton emulation)
 # ─────────────────────────────────────────────────────────────
 #
-# The relays emulate momentary pushbuttons on the MK1 remote terminals.
-# DO NOT hold relays permanently — a brief pulse is all that is needed.
+# START:
+#   1. Set GPIO17 (LED_MOTOR) HIGH
+#   2. Set GPIO23 HIGH → wait 400ms → set GPIO23 LOW  (START pulse to MK1)
+#   3. MK1 latches ON via its own auxiliary contact — motor runs
 #
-# START sequence:
-#   1. Assert GPIO23 HIGH (RLY1 closes START contacts)
-#   2. Wait 300–500ms (long enough for MK1 to latch)
-#   3. Assert GPIO23 LOW (RLY1 opens)
-#   Motor now runs — MK1 holds itself via its own auxiliary contact.
+# STOP:
+#   1. Set GPIO23 LOW (ensure START relay is open first)
+#   2. Set GPIO22 HIGH → wait 400ms → set GPIO22 LOW  (STOP pulse to MK1)
+#   3. Set GPIO17 (LED_MOTOR) LOW
+#   4. Wait 2s minimum before allowing another START
 #
-# STOP sequence:
-#   1. Assert GPIO22 HIGH (RLY2 closes STOP contacts)
-#   2. Wait 300–500ms
-#   3. Assert GPIO22 LOW (RLY2 opens)
-#   Motor now stops.
-#
-# NEVER energise both relays simultaneously.
-# Add a software mutex / lockout: minimum 2s between START and STOP commands.
+# NEVER energise GPIO23 and GPIO22 simultaneously.
+# On boot: issue a STOP pulse before anything else (MK1 may be latched ON from last session).
 
 # ─────────────────────────────────────────────────────────────
-# AUTOMATION LOGIC (suggested — overhead tank + sump control)
+# AUTOMATION LOGIC
 # ─────────────────────────────────────────────────────────────
 #
-# Sensor mapping (confirm with installation):
-#   Float 1 (GPIO36): Overhead tank LOW  — tank needs filling
-#   Float 2 (GPIO39): Overhead tank HIGH — tank is full, stop pump
-#   Probe 1 (GPIO34, LOW level):  Sump has water — pump can run
-#   Probe 2 (GPIO35, MID level):  Sump has good water level
-#   Probe 3 (GPIO32, HIGH level): Sump is high — start pump
+# Sensor mapping:
+#   GPIO36 (FL1 LOW float)  : Overhead tank is LOW → pump should run to fill it
+#   GPIO39 (FL2 HIGH float) : Overhead tank is FULL → pump must stop
+#   GPIO34 (Probe 1 LOW)    : Sump has water at minimum level → safe to run pump
+#   GPIO35 (Probe 2 MID)    : Sump has adequate water
+#   GPIO32 (Probe 3 HIGH)   : Sump is high → pump definitely safe to run
 #
-# Start pump when:
-#   - Overhead tank LOW float triggers (GPIO36 LOW)
-#   - AND sump LOW probe sees water (GPIO34 HIGH) — dry-run protection
+# START pump when ALL of:
+#   - GPIO36 reads LOW  (tank needs water)
+#   - GPIO34 reads HIGH (sump has minimum water — dry-run protection)
+#   - Motor is not already running
 #
-# Stop pump when:
-#   - Overhead tank HIGH float triggers (GPIO39 LOW)
-#   - OR sump LOW probe loses water (GPIO34 LOW) — dry-run protection
+# STOP pump when ANY of:
+#   - GPIO39 reads LOW  (tank is full)
+#   - GPIO34 reads LOW  (sump empty → dry-run protection)
+#   - Motor has run >30 continuous minutes (safety timeout)
 #
-# Hysteresis: once stopped on HIGH float, do not restart until LOW float
-# triggers again. Once stopped on dry-run, do not restart for ≥5 minutes
-# (gives sump time to refill).
-#
-# Status LED (GPIO4):
-#   Solid ON  — pump running
-#   Slow blink (1Hz) — idle, WiFi connected
-#   Fast blink (4Hz) — fault (dry-run, WiFi disconnected, etc.)
+# Hysteresis:
+#   - After stopping on HIGH float: wait until LOW float triggers before restarting
+#   - After dry-run stop: do not restart for ≥5 minutes (sump refill time)
 
 # ─────────────────────────────────────────────────────────────
 # CONNECTIVITY
 # ─────────────────────────────────────────────────────────────
 #
 # WiFi: connect to home network on boot. Use static IP or DHCP reservation.
-# Protocol: MQTT recommended (lightweight, works with Home Assistant / Node-RED).
-# Topics to publish:
-#   varuna/status       — "idle" | "running" | "fault"
-#   varuna/tank/low     — 0/1
-#   varuna/tank/high    — 0/1
-#   varuna/probe/1      — 0/1
-#   varuna/probe/2      — 0/1
-#   varuna/probe/3      — 0/1
-# Topics to subscribe:
-#   varuna/cmd          — "start" | "stop" | "auto"
+# Protocol: MQTT (works with Home Assistant / Node-RED / custom dashboard).
 #
-# Watchdog: enable ESP32 hardware watchdog. If firmware hangs >30s, reboot.
-# OTA: implement ArduinoOTA or ESP-IDF OTA for wireless firmware updates.
+# Publish topics:
+#   varuna/status        — "idle" | "running" | "fault"
+#   varuna/tank/low      — 0/1  (FL1 float)
+#   varuna/tank/high     — 0/1  (FL2 float)
+#   varuna/probe/1       — 0/1  (sump LOW probe)
+#   varuna/probe/2       — 0/1  (sump MID probe)
+#   varuna/probe/3       — 0/1  (sump HIGH probe)
+#
+# Subscribe topics:
+#   varuna/cmd           — "start" | "stop" | "auto"
+#
+# Watchdog: enable ESP32 hardware watchdog, 30s timeout.
+# OTA: implement ArduinoOTA or IDF OTA for wireless firmware updates.
 
 # ─────────────────────────────────────────────────────────────
-# SAFETY RULES (enforce in firmware, not just hardware)
+# BOOT SEQUENCE (order matters)
 # ─────────────────────────────────────────────────────────────
 #
-# 1. Never run pump when sump LOW probe (GPIO34) reads LOW (no water = dry run).
-# 2. Never run pump for more than 30 continuous minutes without a sump check.
-# 3. If WiFi is lost, continue local automation — do not stop motor mid-run.
-# 4. If ESP32 reboots while motor is running, issue a STOP pulse on boot before
-#    doing anything else (MK1 may still be latched ON).
-# 5. GPIO33 (probe excitation) must default LOW on boot — configure as OUTPUT LOW
-#    before any other GPIO setup to avoid floating excitation.
+#   1. Configure GPIO33 as OUTPUT LOW  (probe excitation off — do this FIRST)
+#   2. Configure GPIO23, GPIO22 as OUTPUT LOW  (relays off)
+#   3. Configure GPIO17,19,18,5,4 as OUTPUT LOW  (all LEDs off)
+#   4. Configure GPIO0, GPIO16 as INPUT (buttons)
+#   5. Issue STOP pulse on GPIO22  (clear any latched MK1 state from last session)
+#   6. Turn on LED_PWR is hardware — already on
+#   7. Blink LED1 fast while connecting to WiFi
+#   8. Once connected: LED1 slow blink. Begin automation loop.
+#   9. If no WiFi credentials: enter pairing mode automatically.
+
+# ─────────────────────────────────────────────────────────────
+# SAFETY RULES
+# ─────────────────────────────────────────────────────────────
+#
+# 1. Never run pump when GPIO34 (sump LOW probe) reads LOW — dry run destroys pump.
+# 2. Never hold relays HIGH permanently — always pulse (300–500ms max).
+# 3. Never energise both relays at the same time.
+# 4. Minimum 2s lockout between any START and STOP commands.
+# 5. 30-minute continuous run timeout — stop and alert via MQTT.
+# 6. GPIO33 must be LOW on boot before any other setup.
+# 7. WiFi loss must NOT stop the motor mid-run — continue local automation.
+# 8. All sensor state changes must be confirmed for ≥50ms before acting.

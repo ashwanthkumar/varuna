@@ -1,47 +1,78 @@
 # Varuna — JLCPCB Bill of Materials
-# All parts ordered from JLCPCB / LCSC. Search by C# on jlcpcb.com or lcsc.com.
+# Board: 200×100mm, 2-layer. All C# parts from jlcpcb.com / lcsc.com.
 
-# Power supply
-U_PSU   HLK-5M05            C209907   AC-DC isolated module 5V/1A (Hi-Link)
+# ── Power supply ──────────────────────────────────────────────────────────────
+U_PSU    HLK-5M05             C209907   AC-DC isolated module 230V→5V/1A (Hi-Link)
+SW1      SS12D10G3            C7431053  SPDT slide switch, vertical, controller ON/OFF
 
-# Mains protection
-RV1     TMOV14RP275E        C1528070  MOV varistor 275Vac, across L-N
+# ── Mains protection (no PCB fuse — upstream 2A MCB in DB panel) ──────────────
+RV1      TMOV14RP275E         C1528070  MOV varistor 275Vac, across L-N at AC terminal
 
-# Motor control
-U_DRV   ULN2003ADR          C7512     Darlington array SOIC16 (relay driver)
-RLY1    SRD-05VDC-SL-C      C35449    5V relay, SPDT (START)
-RLY2    SRD-05VDC-SL-C      C35449    5V relay, SPDT (STOP)
+# ── Motor control ─────────────────────────────────────────────────────────────
+U_DRV    ULN2003ADR           C7512     Darlington array SOIC16 (GPIO→relay driver)
+RLY1     SRD-05VDC-SL-C       C35449    5V SPDT relay — START (emulates MK1 START button)
+RLY2     SRD-05VDC-SL-C       C35449    5V SPDT relay — STOP  (emulates MK1 STOP button)
 
-# Connectors — mains & outputs (5.0mm pitch, 3-pole)
-J_AC    WJ128V-5.0-3P       C8270     AC mains input (L / N / E)
-J_START WJ128V-5.0-3P       C8270     MK1 remote START terminals (COM / NO / NC)
-J_STOP  WJ128V-5.0-3P       C8270     MK1 remote STOP terminals (COM / NO / NC)
+# ── AC & output connectors (5.0mm pitch, 3-pole) ──────────────────────────────
+J_AC     WJ128V-5.0-3P        C8270     AC mains input: L / N / E  (bottom edge)
+J_START  WJ128V-5.0-3P        C8270     MK1 remote START: COM / NO / NC (right edge)
+J_STOP   WJ128V-5.0-3P        C8270     MK1 remote STOP:  COM / NO / NC (right edge)
 
-# Sensor inputs — CAT6 run (30-40m) from overhead tank
-J_FL1   WJ500V-5.08-2P      C8465     Float switch 1 — Overhead tank LOW  (CAT6 pair 1)
-J_FL2   WJ500V-5.08-2P      C8465     Float switch 2 — Overhead tank HIGH (CAT6 pair 2)
-J_PR    DB128L-5.08-4P-GN-S C2827883  SS probe connector 4P: PR1(LOW)/PR2(MID)/PR3(HIGH)/COM (CAT6 pair 3+4)
+# ── Sensor inputs — 30-40m CAT6 UTP run from overhead tank ───────────────────
+J_FL1    WJ500V-5.08-2P       C8465     Float switch 1: tank LOW  (bottom edge, CAT6 pair 1)
+J_FL2    WJ500V-5.08-2P       C8465     Float switch 2: tank HIGH (bottom edge, CAT6 pair 2)
+J_PR     DB128L-5.08-4P-GN-S  C2827883  SS probe 4P: PR1(LOW)/PR2(MID)/PR3(HIGH)/COM (CAT6 pair 3+4)
 
-# Surge protection — TVS diode arrays for 30-40m outdoor cable
-TVS_FL  PRTR5V0U2X          C2827688  ESD/surge protection for FL1 + FL2 lines
-TVS_PR12 PRTR5V0U2X         C2827688  ESD/surge protection for PR1 + PR2 lines
-TVS_PR3C PRTR5V0U2X         C2827688  ESD/surge protection for PR3 + COM lines
+# ── Surge protection — TVS arrays for outdoor cable ──────────────────────────
+TVS_FL   PRTR5V0U2X           C2827688  ESD/TVS for float lines FL1 + FL2
+TVS_PR12 PRTR5V0U2X           C2827688  ESD/TVS for probe lines PR1 + PR2
+TVS_PR3C PRTR5V0U2X           C2827688  ESD/TVS for probe line PR3 + excitation COM
 
-# Power switch
-SW1     SS12D10G3           C7431053  SPDT slide switch (onboard controller ON/OFF)
+# ── MCU (buy locally — not assembled by JLCPCB) ──────────────────────────────
+ESP32    ESP32 DevKit V1       —         DOIT WROOM-32, 38-pin. Plugs into ESP_L/ESP_R headers.
+ESP_L    Female header 19-pin  —         2.54mm pitch (left DevKit rail)
+ESP_R    Female header 19-pin  —         2.54mm pitch (right DevKit rail)
 
-# MCU headers (buy locally — standard 2.54mm female pin headers, 19-pin × 2)
-ESP_L   Female pin header   —         19-pin, 2.54mm pitch (left rail of ESP32 DevKit)
-ESP_R   Female pin header   —         19-pin, 2.54mm pitch (right rail of ESP32 DevKit)
+# ── LEDs & resistors ──────────────────────────────────────────────────────────
+# LED_PWR  : hardware power indicator, always on when SW1 is on. No GPIO.
+# All others: GPIO-controlled from ESP32.
+LED_PWR  Red LED 0603          —         Power on indicator (5V rail, hardware — no GPIO)
+R_PWR    1kΩ 0603              —         LED_PWR current limit (≈3.5mA at 5V)
+LED1     Green LED 0603        C965799   WiFi/system status   → GPIO4
+R_LED    330Ω 0603             —         LED1 current limit
+LED_MOTOR Yellow LED 0603      —         Motor running        → GPIO17
+R_MOTOR  330Ω 0603             —         LED_MOTOR current limit
+LED_FL1  Blue LED 0603         —         Float switch 1 state → GPIO19
+R_FL1    330Ω 0603             —         LED_FL1 current limit
+LED_FL2  Blue LED 0603         —         Float switch 2 state → GPIO18
+R_FL2    330Ω 0603             —         LED_FL2 current limit
+LED_PRB  Blue LED 0603         —         Probe water detected → GPIO5
+R_PRB    330Ω 0603             —         LED_PRB current limit
 
-# Passives (standard 0603 / 1206 SMD — source from any supplier)
-C1      100uF 1206          —         PSU output bulk cap
-C2      100nF 0603          —         PSU output decoupling cap
-RU1-8   10k 0603 ×8         —         Float-switch GPIO pull-up resistors
-RS1-8   220R 0603 ×8        —         Float-switch GPIO series protection resistors
-CF1-8   100nF 0603 ×8       —         Float-switch debounce caps
-R_LED   330R 0603           —         Status LED current-limit resistor
-LED1    Green LED 0603       —         Status indicator
+# ── Buttons ───────────────────────────────────────────────────────────────────
+# Active-LOW momentary pushbuttons. Board has 10k pull-up + 100nF debounce per button.
+BTN_PAIR Pushbutton 6mm THT    —         WiFi pairing mode (hold 3s) → GPIO0
+BTN_RST  Pushbutton 6mm THT    —         Factory reset (hold 5s)     → GPIO16
+R_BPAIR  10kΩ 0603             —         BTN_PAIR pull-up
+C_BPAIR  100nF 0603            —         BTN_PAIR debounce cap
+R_BRST   10kΩ 0603             —         BTN_RST pull-up
+C_BRST   100nF 0603            —         BTN_RST debounce cap
 
-# Not on PCB — install in DB panel
-—       MCB 2A              —         Upstream overcurrent protection for the whole board
+# ── PSU decoupling ────────────────────────────────────────────────────────────
+C1       100µF 1206            —         PSU output bulk capacitor
+C2       100nF 0603            —         PSU output decoupling capacitor
+
+# ── Sensor front-end passives (×2 per float, ×3 per probe) ───────────────────
+RU_FL1/2  10kΩ 0603 ×2        —         Float GPIO pull-up resistors
+RS_FL1/2  220Ω 0603 ×2        —         Float series protection resistors
+CF_FL1/2  100nF 0603 ×2       —         Float debounce capacitors
+RD_PR1-3  10kΩ 0603 ×3        —         Probe GPIO pull-DOWN resistors
+RS_PR1-3  220Ω 0603 ×3        —         Probe series protection resistors
+CF_PR1-3  100nF 0603 ×3       —         Probe filter capacitors
+R_EXC     1kΩ 0603 ×1         —         Probe excitation current limiter (GPIO33→COM)
+
+# ── Not on PCB — install at site ─────────────────────────────────────────────
+—        MCB 2A               —         DB panel upstream overcurrent protection
+—        SS probes ×3 (type 304 or 316 SS rods, ~6mm dia)  — sump electrodes
+—        Float switches ×2    —         Overhead tank HIGH and LOW sensors
+—        CAT6 UTP cable       —         30-40m run, overhead tank to controller
