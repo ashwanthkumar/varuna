@@ -228,3 +228,26 @@ GPIO3   UART0  RX → J_DBG.RX                           (default Serial; clip U
 # 8. All sensor state changes must be confirmed for ≥50ms before acting.
 # 9. Defence-in-depth: also wire the overload NC contact physically in series with
 #    the contactor coil in the panel, so a trip stops the motor even if firmware hangs.
+
+# ─────────────────────────────────────────────────────────────
+# PROGRAMMING / FLASHING
+# ─────────────────────────────────────────────────────────────
+#
+# CURRENT BOARD (ESP32 DevKit on headers):
+#   - Flash over the DevKit's own USB port (CP2102/CH340 + auto-reset built in).
+#   - esptool / Arduino IDE / PlatformIO "Upload" works directly — no button dance.
+#   - J_DBG (3-pin TX/RX/GND) is for reading serial LOGS in the field, NOT flashing.
+#     Clip a 3V3 USB-TTL adapter to it; cross TX<->RX.
+#
+# IF MIGRATED TO A SOLDERED ESP32-WROOM-32 (no DevKit) — see
+# notes/bare-module-migration.md. The module needs an external flash path:
+#   - 6-pin programming header: 3V3 / GND / TX(GPIO1) / RX(GPIO3) / GPIO0 / EN.
+#     Plug a USB-serial dongle whose DTR/RTS drive GPIO0+EN for auto-reset.
+#   - Boot mode: GPIO0 LOW at reset = download mode; pulse EN to reset.
+#   - Add the support parts the DevKit otherwise provides: EN 10k pull-up + 100nF,
+#     GPIO0 10k pull-up, and a 3.3V LDO (e.g. AMS1117-3.3).
+#
+# OTA (recommended for field updates, either board):
+#   - After the first wired flash, push subsequent firmware over WiFi via
+#     ArduinoOTA or ESP-IDF OTA. Guard OTA so it cannot start while the pump is
+#     running; keep the wired path only for recovery/unbricking.
