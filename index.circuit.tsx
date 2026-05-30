@@ -297,57 +297,58 @@ export default () => (
     <trace from="J_OL.GND" to="net.GND" />
 
     {/* ============================================================ */}
-    {/* STATUS LED (GPIO4)                                           */}
+    {/* LED INDICATOR CLUSTER — grouped in one labelled row along the */}
+    {/* top edge so all 6 are visible through a transparent front      */}
+    {/* cover. Bold silkscreen labels above each LED.                  */}
+    {/*                                                                */}
+    {/*  Layout per channel (top→down): LABEL(y=49) LED(y=45) R(y=40)  */}
+    {/*  6 LEDs evenly spaced 13mm apart, centred on the board.        */}
+    {/*   PWR(red)  WIFI(grn)  MOTOR(yel)  FL1(blu)  FL2(blu)  PRB(blu)*/}
     {/* ============================================================ */}
-    {/* ============================================================ */}
-    {/* LEDs — indicator row along the top edge                     */}
-    {/* LED_PWR : always-on power indicator (5V rail, no GPIO)      */}
-    {/* LED1    : WiFi/system status (GPIO4)                        */}
-    {/* LED_MOTOR: motor running indicator (GPIO17)                 */}
-    {/* LED_FL1 : float switch 1 state (GPIO19)                    */}
-    {/* LED_FL2 : float switch 2 state (GPIO18)                    */}
-    {/* LED_PRB : probe sensor active (GPIO5)                       */}
-    {/* ============================================================ */}
-    {/* Power LED — always on. Placed beside the SW1 power switch (SW1 at
-       x=-58, body x:[-64.6,-51.4]) so the user sees power status right at
-       the ON/OFF control. LED+R stacked vertically just left of SW1. */}
-    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={-70} pcbY={37} />
-    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={-70} pcbY={32} />
+    {/* PWR — always on (5V rail, no GPIO) */}
+    <silkscreentext text="PWR" pcbX={-32.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={-32.5} pcbY={45} />
+    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={-32.5} pcbY={40} />
     <trace from="R_PWR.pin1" to="net.V5" />
     <trace from="R_PWR.pin2" to="LED_PWR.pin1" />
     <trace from="LED_PWR.pin2" to="net.GND" />
 
-    {/* WiFi/status LED (GPIO4) */}
-    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={34} pcbY={44} />
-    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={40} pcbY={44} />
+    {/* WIFI — system/WiFi status (GPIO4) */}
+    <silkscreentext text="WIFI" pcbX={-19.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={-19.5} pcbY={45} />
+    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={-19.5} pcbY={40} />
     <trace from="ESP_R.GPIO4" to="R_LED.pin1" />
     <trace from="R_LED.pin2" to="LED1.pin1" />
     <trace from="LED1.pin2" to="net.GND" />
 
-    {/* Motor running LED (GPIO17) */}
-    <resistor name="R_MOTOR" resistance="330" footprint="0603" schX={10} schY={-3} pcbX={46} pcbY={44} />
-    <led name="LED_MOTOR" color="yellow" footprint="0603" schX={11} schY={-3} pcbX={52} pcbY={44} />
+    {/* MOTOR — pump running (GPIO17) */}
+    <silkscreentext text="MOTOR" pcbX={-6.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_MOTOR" color="yellow" footprint="0603" schX={11} schY={-3} pcbX={-6.5} pcbY={45} />
+    <resistor name="R_MOTOR" resistance="330" footprint="0603" schX={10} schY={-3} pcbX={-6.5} pcbY={40} />
     <trace from="ESP_R.GPIO17" to="R_MOTOR.pin1" />
     <trace from="R_MOTOR.pin2" to="LED_MOTOR.pin1" />
     <trace from="LED_MOTOR.pin2" to="net.GND" />
 
-    {/* Float 1 sensor LED (GPIO19) */}
-    <resistor name="R_FL1" resistance="330" footprint="0603" schX={6} schY={-5} pcbX={58} pcbY={44} />
-    <led name="LED_FL1" color="blue" footprint="0603" schX={7} schY={-5} pcbX={64} pcbY={44} />
+    {/* FL1 — float switch 1 / tank LOW (GPIO19) */}
+    <silkscreentext text="FL1" pcbX={6.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_FL1" color="blue" footprint="0603" schX={7} schY={-5} pcbX={6.5} pcbY={45} />
+    <resistor name="R_FL1" resistance="330" footprint="0603" schX={6} schY={-5} pcbX={6.5} pcbY={40} />
     <trace from="ESP_R.GPIO19" to="R_FL1.pin1" />
     <trace from="R_FL1.pin2" to="LED_FL1.pin1" />
     <trace from="LED_FL1.pin2" to="net.GND" />
 
-    {/* Float 2 sensor LED (GPIO18) */}
-    <resistor name="R_FL2" resistance="330" footprint="0603" schX={8} schY={-5} pcbX={70} pcbY={44} />
-    <led name="LED_FL2" color="blue" footprint="0603" schX={9} schY={-5} pcbX={76} pcbY={44} />
+    {/* FL2 — float switch 2 / tank HIGH (GPIO18) */}
+    <silkscreentext text="FL2" pcbX={19.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_FL2" color="blue" footprint="0603" schX={9} schY={-5} pcbX={19.5} pcbY={45} />
+    <resistor name="R_FL2" resistance="330" footprint="0603" schX={8} schY={-5} pcbX={19.5} pcbY={40} />
     <trace from="ESP_R.GPIO18" to="R_FL2.pin1" />
     <trace from="R_FL2.pin2" to="LED_FL2.pin1" />
     <trace from="LED_FL2.pin2" to="net.GND" />
 
-    {/* Probe sensor LED (GPIO5) */}
-    <resistor name="R_PRB" resistance="330" footprint="0603" schX={10} schY={-5} pcbX={82} pcbY={44} />
-    <led name="LED_PRB" color="blue" footprint="0603" schX={11} schY={-5} pcbX={88} pcbY={44} />
+    {/* PRB — probe water detected (GPIO5) */}
+    <silkscreentext text="PRB" pcbX={32.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_PRB" color="blue" footprint="0603" schX={11} schY={-5} pcbX={32.5} pcbY={45} />
+    <resistor name="R_PRB" resistance="330" footprint="0603" schX={10} schY={-5} pcbX={32.5} pcbY={40} />
     <trace from="ESP_R.GPIO5" to="R_PRB.pin1" />
     <trace from="R_PRB.pin2" to="LED_PRB.pin1" />
     <trace from="LED_PRB.pin2" to="net.GND" />
