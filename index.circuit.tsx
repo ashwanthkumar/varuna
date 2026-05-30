@@ -308,9 +308,11 @@ export default () => (
     {/* LED_FL2 : float switch 2 state (GPIO18)                    */}
     {/* LED_PRB : probe sensor active (GPIO5)                       */}
     {/* ============================================================ */}
-    {/* Power LED — always on */}
-    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={22} pcbY={44} />
-    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={28} pcbY={44} />
+    {/* Power LED — always on. Placed beside the SW1 power switch (SW1 at
+       x=-58, body x:[-64.6,-51.4]) so the user sees power status right at
+       the ON/OFF control. LED+R stacked vertically just left of SW1. */}
+    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={-70} pcbY={37} />
+    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={-70} pcbY={32} />
     <trace from="R_PWR.pin1" to="net.V5" />
     <trace from="R_PWR.pin2" to="LED_PWR.pin1" />
     <trace from="LED_PWR.pin2" to="net.GND" />
