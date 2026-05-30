@@ -94,13 +94,16 @@ export default () => (
        Each part has a different body depth (pad-to-face), so pcbY is offset per
        part: WJ128V(J_AC)=5.58 -> pcbY=-42.0; DB128L(J_PR)=5.36 -> -42.22;
        WJ500V(J_FL)=4.77 -> -42.81. */}
+    {/* J_AC moved to TOP-LEFT. Wire entry faces UP (pcbRotation=180) so AC
+       lines from the MCB on the DIN rail above can drop straight in. */}
     <Terminal3P
       name="J_AC"
       pinLabels={AC_PINS}
       schX={-13}
       schY={6}
-      pcbX={-80}
-      pcbY={-42}
+      pcbRotation={180}
+      pcbX={-82}
+      pcbY={44}
     />
     {/* RV1 = TMOV14RP275E: 275Vac MOV across L-N (JLC C1528070).
        Clamps mains transients. No PCB fuse — upstream MCB in the DB panel
@@ -126,16 +129,16 @@ export default () => (
       pcbX={-72}
       pcbY={8}
     />
-    {/* Onboard power ON/OFF — SS12D10G3 SPDT slide switch, pcbRotation=90 makes
-       it slide UP/DOWN (vertical) like a standard panel rocker/slider. */}
+    {/* SW1 moved to BOTTOM-LEFT (user-accessible at the bottom of the
+       mounted enclosure). pcbRotation=90 keeps it sliding UP/DOWN. */}
     <SS12D10G3
       name="SW1"
       pinLabels={PWR_SW_PINS}
       schX={-7}
       schY={6}
       pcbRotation={90}
-      pcbX={-58}
-      pcbY={34}
+      pcbX={-85}
+      pcbY={-42}
     />
     <capacitor name="C1" capacitance="100uF" footprint="1206" schX={-13} schY={2.5} pcbX={-48} pcbY={6} />
     <capacitor name="C2" capacitance="100nF" footprint="0603" schX={-11} schY={2.5} pcbX={-48} pcbY={1} />
@@ -147,19 +150,13 @@ export default () => (
        N goes from (-80,-42) right to (-80,-35) then LEFT to x=-93 then UP.
        L and N never cross because L is at x=-85 (left of N at x=-80).
        Gap between L and N lanes: 8mm centre-to-centre = 7.2mm edge-to-edge. */}
-    {/* L: up from bottom pin (y=-42), straight to RV1.B, then HLK.ACL */}
-    <trace from="J_AC.L" to="RV1.B" thickness="0.8mm"
-      path={[{ x: -85, y: -42 }, { x: -85, y: 28 }, { x: -86.23, y: 28 }]} />
-    <trace from="RV1.B" to="U_PSU.ACL" thickness="0.8mm"
-      path={[{ x: -86.23, y: 28 }, { x: -85, y: 28 }, { x: -85, y: 5 }, { x: -88.8, y: 5 }]} />
-    {/* N: right then left to x=-93 lane, up to RV1.A */}
-    <trace from="J_AC.N" to="RV1.A" thickness="0.8mm"
-      path={[{ x: -80, y: -42 }, { x: -80, y: -35 }, { x: -93, y: -35 }, { x: -93, y: 28 }, { x: -88.77, y: 28 }]} />
-    <trace from="RV1.A" to="U_PSU.ACN" thickness="0.8mm"
-      path={[{ x: -88.77, y: 28 }, { x: -93, y: 28 }, { x: -93, y: 11 }, { x: -88.8, y: 11 }]} />
-    {/* E: short stub downward, away from L/N */}
-    <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm"
-      path={[{ x: -75, y: -42 }, { x: -75, y: -46 }]} />
+    {/* AC connectivity — autorouter handles paths after the layout reshuffle.
+       Hand-routed creepage paths can be re-added after positions are final. */}
+    <trace from="J_AC.L" to="RV1.B" thickness="0.8mm" />
+    <trace from="RV1.B" to="U_PSU.ACL" thickness="0.8mm" />
+    <trace from="J_AC.N" to="RV1.A" thickness="0.8mm" />
+    <trace from="RV1.A" to="U_PSU.ACN" thickness="0.8mm" />
+    <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm" />
     {/* Name the mains rails so the contactor-coil relay can tap them.
        LIVE is taken AFTER the MOV (RV1.B); NEUTRAL from RV1.A. The relay
        COM gets LIVE; the contactor coil return (J_COIL.A2) gets NEUTRAL.
@@ -182,15 +179,16 @@ export default () => (
     {/* ============================================================ */}
     <pinheader
       name="ESP_L"
-      pinCount={19}
+      pinCount={15}
       pitch="2.54mm"
       gender="female"
-      pcbRotation={90}
+      pcbRotation={270}
       showSilkscreenPinLabels
       pinLabels={[
-        "V3V3", "EN", "GPIO36", "GPIO39", "GPIO34", "GPIO35", "GPIO32",
-        "GPIO33", "GPIO25", "GPIO26", "GPIO27", "GPIO14", "GPIO12",
-        "GND_L", "GPIO13", "GPIO9", "GPIO10", "GPIO11", "V5_L",
+        // 30-pin NodeMCU ESP32 (Robocraze CP2102), LEFT column top->bottom:
+        "EN", "GPIO36", "GPIO39", "GPIO34", "GPIO35", "GPIO32", "GPIO33",
+        "GPIO25", "GPIO26", "GPIO27", "GPIO14", "GPIO12", "GND_L", "GPIO13",
+        "V5_L",
       ]}
       schX={0}
       schY={0}
@@ -199,15 +197,16 @@ export default () => (
     />
     <pinheader
       name="ESP_R"
-      pinCount={19}
+      pinCount={15}
       pitch="2.54mm"
       gender="female"
-      pcbRotation={90}
+      pcbRotation={270}
       showSilkscreenPinLabels
       pinLabels={[
-        "GND_R1", "GPIO23", "GPIO22", "GPIO1", "GPIO3", "GPIO21", "GND_R2",
-        "GPIO19", "GPIO18", "GPIO5", "GPIO17", "GPIO16", "GPIO4", "GPIO0",
-        "GPIO2", "GPIO15", "GPIO8", "GPIO7", "GPIO6",
+        // 30-pin NodeMCU ESP32, RIGHT column top->bottom:
+        "GPIO23", "GPIO22", "GPIO1", "GPIO3", "GPIO21", "GPIO19", "GPIO18",
+        "GPIO5", "GPIO17", "GPIO16", "GPIO4", "GPIO0", "GPIO2", "GPIO15",
+        "V3V3",
       ]}
       schX={4}
       schY={0}
@@ -216,20 +215,23 @@ export default () => (
     />
 
     {/* ESP32 DevKit orientation guide — silk between the two header rows.
-       Header pin1 (V3V3) is at the BOTTOM (y=-22.9); V5/VIN at the TOP
-       (y=+22.9). On the DevKit, VIN is at the USB end and 3V3 at the
-       antenna end, so the USB port faces the TOP edge and the PCB antenna
-       faces the BOTTOM. Keep the bottom (antenna) end clear of metal. */}
-    <silkscreentext text="ESP32 DEVKIT" pcbX={0} pcbY={4} anchorAlignment="center" fontSize={1.4} />
-    <silkscreentext text="USB / VIN  ^ TOP" pcbX={0} pcbY={20} anchorAlignment="center" fontSize={1.2} />
-    <silkscreentext text="3V3 / ANTENNA v BOT" pcbX={0} pcbY={-20} anchorAlignment="center" fontSize={1.2} />
+       Targeting the 30-pin NodeMCU ESP32 (Robocraze CP2102), 2×15 female
+       headers. pcbRotation=270 puts pin1 of each column at the TOP (high y).
+         TOP of PCB    = USB / EN end (programming port faces TOP)
+         BOTTOM of PCB = ANTENNA / VIN (left) + 3V3 (right) — keep clear of metal
+       Note: V3V3 lives on the RIGHT header (ESP_R, bottom pin), VIN on the
+       LEFT header (ESP_L, bottom pin) — this is the standard 30-pin layout. */}
+    <silkscreentext text="ESP32 NodeMCU 30p" pcbX={0} pcbY={4} anchorAlignment="center" fontSize={1.4} />
+    <silkscreentext text="USB / EN  ^ TOP" pcbX={0} pcbY={20} anchorAlignment="center" fontSize={1.2} />
+    <silkscreentext text="ANTENNA / VIN / 3V3 v BOT" pcbX={0} pcbY={-20} anchorAlignment="center" fontSize={1.2} />
 
-    {/* Power/ground to the DevKit */}
+    {/* Power/ground to the 30-pin NodeMCU ESP32:
+       V5/VIN on LEFT (ESP_L pin 15, bottom), V3V3 on RIGHT (ESP_R pin 15, bottom),
+       and a single GND on LEFT (ESP_L pin 13). The DevKit ties all chip GND
+       pins together internally, so one external GND tap is sufficient. */}
     <trace from="ESP_L.V5_L" to="net.V5" />
-    <trace from="ESP_L.V3V3" to="net.V3V3" />
+    <trace from="ESP_R.V3V3" to="net.V3V3" />
     <trace from="ESP_L.GND_L" to="net.GND" />
-    <trace from="ESP_R.GND_R1" to="net.GND" />
-    <trace from="ESP_R.GND_R2" to="net.GND" />
 
     {/* ============================================================ */}
     {/* UART DEBUG HEADER (J_DBG) — clip-on serial for field service  */}
@@ -298,16 +300,15 @@ export default () => (
     <trace from="RLY_MOTOR.COILA" to="net.V5" />
     <trace from="RLY_MOTOR.COILB" to="U_DRV.OUT1" />
 
-    {/* J_COIL: 2-pole terminal to the contactor coil (A1/A2).
-       A1 = switched Live from relay NO; A2 = Neutral. */}
+    {/* J_COIL moved to TOP — short wires up to the contactor coil on DIN rail. */}
     <Terminal2P
       name="J_COIL"
       pinLabels={COIL_PINS}
       schX={14}
       schY={3}
-      pcbRotation={90}
-      pcbX={76}
-      pcbY={16}
+      pcbRotation={180}
+      pcbX={32}
+      pcbY={44}
     />
     {/* mains Live in -> relay COM; relay NO -> coil A1 (hand-routed, 0.8mm) */}
     <trace from="RLY_MOTOR.COM" to="net.LIVE" thickness="0.8mm" />
@@ -319,18 +320,20 @@ export default () => (
        HIGH (pulled up) = healthy; LOW (contact closed to GND) = NOT tripped.
        When the overload TRIPS, the NC contact OPENS -> GPIO21 reads HIGH.
        Firmware: treat sustained HIGH while motor commanded ON as a trip fault. */}
+    {/* J_OL moved to TOP — short wires up to the overload aux on DIN rail. */}
     <Terminal2P
       name="J_OL"
       pinLabels={OL_PINS}
       schX={14}
       schY={-2}
-      pcbRotation={90}
-      pcbX={76}
-      pcbY={-10}
+      pcbRotation={180}
+      pcbX={12}
+      pcbY={44}
     />
-    <resistor name="RU_OL" resistance="10k" footprint="0603" schX={12} schY={-2} pcbX={60} pcbY={-10} />
-    <resistor name="RS_OL" resistance="220" footprint="0603" schX={12} schY={-3} pcbX={60} pcbY={-15} />
-    <capacitor name="CF_OL" capacitance="100nF" footprint="0603" schX={13} schY={-2} pcbX={64} pcbY={-10} />
+    {/* OL front-end passives near new J_OL position */}
+    <resistor name="RU_OL" resistance="10k" footprint="0603" schX={12} schY={-2} pcbX={20} pcbY={34} />
+    <resistor name="RS_OL" resistance="220" footprint="0603" schX={12} schY={-3} pcbX={20} pcbY={30} />
+    <capacitor name="CF_OL" capacitance="100nF" footprint="0603" schX={13} schY={-2} pcbX={14} pcbY={34} />
     <trace from="RU_OL.pin1" to="net.V3V3" />
     <trace from="RU_OL.pin2" to="ESP_R.GPIO21" />
     <trace from="CF_OL.pin1" to="ESP_R.GPIO21" />
@@ -340,61 +343,64 @@ export default () => (
     <trace from="J_OL.GND" to="net.GND" />
 
     {/* ============================================================ */}
-    {/* LED INDICATOR CLUSTER — grouped in one labelled row along the */}
-    {/* top edge so all 6 are visible through a transparent front      */}
-    {/* cover. Bold silkscreen labels above each LED.                  */}
-    {/*                                                                */}
-    {/*  Layout per channel (top→down): LABEL(y=49) LED(y=45) R(y=40)  */}
-    {/*  6 LEDs evenly spaced 13mm apart, centred on the board.        */}
-    {/*   PWR(red)  WIFI(grn)  MOTOR(yel)  FL1(blu)  FL2(blu)  PRB(blu)*/}
+    {/* LED INDICATOR COLUMN — vertical row on the RIGHT EDGE.        */}
+    {/* PWR at the top (high +y), PRB at the bottom (low -y).        */}
+    {/* Each channel: silk label LEFT of LED, resistor LEFT of label. */}
+    {/* 13mm vertical spacing, all LEDs at x=92.                       */}
+    {/*    LED x=92, silk label x=85 (left of LED), resistor x=80     */}
     {/* ============================================================ */}
     {/* PWR — always on (5V rail, no GPIO) */}
-    <silkscreentext text="PWR" pcbX={-32.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={-32.5} pcbY={45} />
-    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={-32.5} pcbY={40} />
+    <silkscreentext text="PWR" pcbX={85} pcbY={32.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_PWR" color="red" footprint="0603" schX={7} schY={-3} pcbX={92} pcbY={32.5} />
+    <resistor name="R_PWR" resistance="1k" footprint="0603" schX={6} schY={-3} pcbX={80} pcbY={32.5} />
     <trace from="R_PWR.pin1" to="net.V5" />
     <trace from="R_PWR.pin2" to="LED_PWR.pin1" />
     <trace from="LED_PWR.pin2" to="net.GND" />
 
     {/* WIFI — system/WiFi status (GPIO4) */}
-    <silkscreentext text="WIFI" pcbX={-19.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={-19.5} pcbY={45} />
-    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={-19.5} pcbY={40} />
+    <silkscreentext text="WIFI" pcbX={85} pcbY={19.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED1" color="green" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C965799"] }} schX={9.5} schY={-3} pcbX={92} pcbY={19.5} />
+    <resistor name="R_LED" resistance="330" footprint="0603" schX={8} schY={-3} pcbX={80} pcbY={19.5} />
     <trace from="ESP_R.GPIO4" to="R_LED.pin1" />
     <trace from="R_LED.pin2" to="LED1.pin1" />
     <trace from="LED1.pin2" to="net.GND" />
 
     {/* MOTOR — pump running (GPIO17) */}
-    <silkscreentext text="MOTOR" pcbX={-6.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED_MOTOR" color="yellow" footprint="0603" schX={11} schY={-3} pcbX={-6.5} pcbY={45} />
-    <resistor name="R_MOTOR" resistance="330" footprint="0603" schX={10} schY={-3} pcbX={-6.5} pcbY={40} />
+    <silkscreentext text="MOTOR" pcbX={85} pcbY={6.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_MOTOR" color="yellow" footprint="0603" schX={11} schY={-3} pcbX={92} pcbY={6.5} />
+    <resistor name="R_MOTOR" resistance="330" footprint="0603" schX={10} schY={-3} pcbX={80} pcbY={6.5} />
     <trace from="ESP_R.GPIO17" to="R_MOTOR.pin1" />
     <trace from="R_MOTOR.pin2" to="LED_MOTOR.pin1" />
     <trace from="LED_MOTOR.pin2" to="net.GND" />
 
     {/* FL1 — float switch 1 / tank LOW (GPIO19) */}
-    <silkscreentext text="FL1" pcbX={6.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED_FL1" color="blue" footprint="0603" schX={7} schY={-5} pcbX={6.5} pcbY={45} />
-    <resistor name="R_FL1" resistance="330" footprint="0603" schX={6} schY={-5} pcbX={6.5} pcbY={40} />
+    <silkscreentext text="FL1" pcbX={85} pcbY={-6.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_FL1" color="blue" footprint="0603" schX={7} schY={-5} pcbX={92} pcbY={-6.5} />
+    <resistor name="R_FL1" resistance="330" footprint="0603" schX={6} schY={-5} pcbX={80} pcbY={-6.5} />
     <trace from="ESP_R.GPIO19" to="R_FL1.pin1" />
     <trace from="R_FL1.pin2" to="LED_FL1.pin1" />
     <trace from="LED_FL1.pin2" to="net.GND" />
 
     {/* FL2 — float switch 2 / tank HIGH (GPIO18) */}
-    <silkscreentext text="FL2" pcbX={19.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED_FL2" color="blue" footprint="0603" schX={9} schY={-5} pcbX={19.5} pcbY={45} />
-    <resistor name="R_FL2" resistance="330" footprint="0603" schX={8} schY={-5} pcbX={19.5} pcbY={40} />
+    <silkscreentext text="FL2" pcbX={85} pcbY={-19.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_FL2" color="blue" footprint="0603" schX={9} schY={-5} pcbX={92} pcbY={-19.5} />
+    <resistor name="R_FL2" resistance="330" footprint="0603" schX={8} schY={-5} pcbX={80} pcbY={-19.5} />
     <trace from="ESP_R.GPIO18" to="R_FL2.pin1" />
     <trace from="R_FL2.pin2" to="LED_FL2.pin1" />
     <trace from="LED_FL2.pin2" to="net.GND" />
 
     {/* PRB — probe water detected (GPIO5) */}
-    <silkscreentext text="PRB" pcbX={32.5} pcbY={49} anchorAlignment="center" fontSize={1.5} />
-    <led name="LED_PRB" color="blue" footprint="0603" schX={11} schY={-5} pcbX={32.5} pcbY={45} />
-    <resistor name="R_PRB" resistance="330" footprint="0603" schX={10} schY={-5} pcbX={32.5} pcbY={40} />
+    <silkscreentext text="PRB" pcbX={85} pcbY={-32.5} anchorAlignment="center" fontSize={1.5} />
+    <led name="LED_PRB" color="blue" footprint="0603" schX={11} schY={-5} pcbX={92} pcbY={-32.5} />
+    <resistor name="R_PRB" resistance="330" footprint="0603" schX={10} schY={-5} pcbX={80} pcbY={-32.5} />
     <trace from="ESP_R.GPIO5" to="R_PRB.pin1" />
     <trace from="R_PRB.pin2" to="LED_PRB.pin1" />
     <trace from="LED_PRB.pin2" to="net.GND" />
+
+    {/* Project credits — silkscreen on the right-bottom (clear of components) */}
+    <silkscreentext text="Project Varuna" pcbX={60} pcbY={-40} anchorAlignment="center" fontSize={1.2} />
+    <silkscreentext text="version: v1" pcbX={60} pcbY={-43} anchorAlignment="center" fontSize={1.0} />
+    <silkscreentext text="made with <3 in chennai" pcbX={60} pcbY={-46} anchorAlignment="center" fontSize={1.0} />
 
     {/* ============================================================ */}
     {/* BUTTONS — below the HLK module, labelled for transparent cover */}

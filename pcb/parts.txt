@@ -43,9 +43,14 @@ TVS_PR12 PRTR5V0U2X           C2827688  ESD/TVS for probe lines PR1 + PR2
 TVS_PR3C PRTR5V0U2X           C2827688  ESD/TVS for probe line PR3 + excitation COM
 
 # ── MCU (buy locally — not assembled by JLCPCB) ──────────────────────────────
-ESP32    ESP32 DevKit V1       —         DOIT WROOM-32, 38-pin. Plugs into ESP_L/ESP_R headers.
-ESP_L    Female header 19-pin  —         2.54mm pitch (left DevKit rail)
-ESP_R    Female header 19-pin  —         2.54mm pitch (right DevKit rail)
+ESP32    NodeMCU ESP32 30-pin  —         WROOM-32 + CP2102 USB-UART, 2x15 pin pitch.
+#                                         Robocraze / Quartz Components / similar Indian
+#                                         sellers; plugs into ESP_L/ESP_R 15-pin headers.
+ESP_L    Female header 15-pin  —         2.54mm pitch (left rail of 30-pin DevKit)
+ESP_R    Female header 15-pin  —         2.54mm pitch (right rail of 30-pin DevKit)
+#  NOTE: 38-pin DOIT V1 modules will NOT fit these 15-pin headers — the longer
+#  header has 4 extra pins per side (GPIO6-11, all unusable SPI-flash pins on
+#  any ESP32 module). The 30-pin variant has all the same usable GPIOs.
 J_DBG    S3B-XH-A             C160404   JST-XH 3-pin RIGHT-ANGLE (side-entry) UART debug:
 #                                         TX(GPIO1)/RX(GPIO3)/GND. Latching+polarized; mating
 #                                         lead plugs in from the bottom board edge / below the

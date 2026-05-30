@@ -41,7 +41,10 @@ varuna-ts/
 
 - **Power**: HLK-5M05 (230 V AC → 5 V DC) + 275 V MOV surge clamp + onboard slide
   power switch. No PCB fuse — protection is an upstream MCB in the DB panel.
-- **MCU**: ESP32 DevKit (38-pin) on two 19-pin female headers.
+- **MCU**: ESP32 NodeMCU (**30-pin, CP2102 USB-UART**) on two 15-pin female
+  headers (e.g. Robocraze NodeMCU ESP32). The 8 pins not exposed on the 30-pin
+  vs the 38-pin DOIT V1 are SPI-flash pins — unusable as GPIO anyway, so no
+  functional loss.
 - **Motor control**: ULN2003 → relay → `J_COIL` drives the external contactor coil;
   `J_OL` reads the overload relay's trip contact.
 - **Sensors** (30–40 m CAT6 to the tank): 2× float switches + 3× SS probes with
@@ -51,6 +54,25 @@ varuna-ts/
 - Board: **200 × 100 mm, 2-layer**, fully routed.
 
 See `pcb/parts.txt` for the full BOM and `INSTALL.txt` for panel wiring.
+
+---
+
+## First-time setup
+
+Two independent toolchains — install whichever you need:
+
+**PCB work** — Node 20 (`.nvmrc`) + tscircuit CLI:
+```bash
+nvm install            # picks up .nvmrc → Node 20
+npm i -g tscircuit
+cd pcb && npm install
+```
+
+**Enclosure work** — OpenSCAD + the BOSL2 library (clone instructions per OS in
+[`enclosure/README.md`](enclosure/README.md#prerequisites-one-time-setup)).
+
+**Firmware work** — not wired up yet (`firmware.txt` is the spec; no toolchain
+to install until the code lands in `firmware/`).
 
 ---
 
@@ -103,6 +125,13 @@ Pick a contactor rated **AC3 ≥ 15 A** and an overload sized to the motor FLA.
 | Contactor | LEYDEN CJX2-3211, 32 A AC-3, 230 V coil, 3-pole | coil A1/A2 → `J_COIL` | [amazon.in B0BZQNCKWY](https://www.amazon.in/gp/product/B0BZQNCKWY) |
 | Overload relay | MAGNUM MaK-1 2P, 13–21 A (dial to ~13 A) | 95-96 NC aux → `J_OL` | [amazon.in B0F5HTJWTT](https://www.amazon.in/gp/product/B0F5HTJWTT) |
 | MCB | 20 A Type-C (DB panel, upstream) | mains feed | local |
+| ESP32 module | NodeMCU ESP32 30-pin with CP2102 USB-UART (e.g. Robocraze) | plugs into the two 15-pin female headers on the PCB | Robocraze / Amazon |
+
+> **ESP32 module note**: the design targets the **30-pin NodeMCU ESP32 with CP2102**
+> (common Indian variant from Robocraze, Quartz Components, etc.). The 38-pin
+> DOIT V1 has the same usable GPIOs but a different header length and pin order —
+> if you use a 38-pin module, the headers won't physically fit. See
+> `notes/bare-module-migration.md` if you ever want to drop the DevKit entirely.
 
 > The overload clips onto the bottom of the CJX2 contactor (they mate). Set the
 > overload dial to the motor's nameplate full-load current (~12–13 A for 2 HP

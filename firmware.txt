@@ -1,5 +1,5 @@
 # Varuna Firmware Requirements
-# Target: ESP32 (DOIT DevKit V1, WROOM-32)
+# Target: ESP32 NodeMCU 30-pin (WROOM-32 + CP2102 USB-UART, e.g. Robocraze)
 # Framework: Arduino or ESP-IDF (Arduino recommended for faster iteration)
 
 # ─────────────────────────────────────────────────────────────
