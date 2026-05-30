@@ -17,6 +17,20 @@ J_AC     WJ128V-5.0-3P        C8270     AC mains input: L / N / E (3-pole, botto
 J_COIL   WJ500V-5.08-2P       C8465     Contactor coil out: A1 (switched Live) / A2 (Neutral)
 J_OL     WJ500V-5.08-2P       C8465     Overload relay aux NC contact sense: OL / GND
 
+# ── Energy metering (motor V/I/power; current-based dry-run) ─────────────────
+U_MTR    BL0942               C2909509  Single-phase energy-metering IC (UART/SPI to ESP32 GPIO25/26)
+U_VT     ZMPT101B             C111858   Voltage transformer (mains V sense, isolated)
+J_CT     WJ500V-5.08-2P       C8465     External current-transformer input: CT1 / CT2 (bottom edge)
+R_BUR    20R 0603 (REF)       —         CT burden resistor — SIZE to chosen CT ratio (datasheet)
+R_VT1/2  100k 0805 x2 (REF)   —         ZMPT primary series Rs (2 in series for 230Vac rating)
+R_VBUR   1k 0603 (REF)        —         ZMPT secondary burden to BL0942 VP
+C_MTR    100nF 0603           —         BL0942 VDD decoupling
+#  EXTERNAL (not on PCB): a clamp/loop CURRENT TRANSFORMER around the motor Live
+#  wire; its 2 leads land on J_CT. Pick a CT (e.g. ZMCT103C or SCT-013) rated for
+#  >=15A and set R_BUR for ~full-scale at the BL0942 input. ⚠ REFERENCE values —
+#  finalize R_BUR / R_VT / R_VBUR and the BL0942 interface (UART vs SPI, SEL pin)
+#  against the BL0942 + CT datasheets before fabrication.
+
 # ── EXTERNAL DOL components (DIN-rail, NOT on PCB — install in enclosure) ─────
 #  Contactor  : LEYDEN CJX2-3211, 32A AC-3, 220/230VAC 50Hz coil, 3-pole.
 #               Coil A1/A2 → J_COIL. For single-phase motor, parallel two poles

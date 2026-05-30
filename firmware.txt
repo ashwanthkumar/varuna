@@ -182,7 +182,23 @@ GPIO3   UART0  RX → J_DBG.RX                           (default Serial; clip U
 #   - GPIO39 reads LOW  (tank is full)
 #   - GPIO34 reads LOW  (sump empty → dry-run protection)
 #   - GPIO21 reads HIGH (overload TRIPPED — latch fault, require manual reset)
+#   - BL0942 motor current drops below the dry-run threshold while running
+#     (pump lost prime — see CURRENT-BASED DRY-RUN below)
+#   - BL0942 motor current exceeds the over-current limit (jam/locked rotor)
 #   - Motor has run >30 continuous minutes (safety timeout)
+#
+# CURRENT-BASED DRY-RUN (BL0942 on GPIO25/26):
+#   - After START, wait ~3-5s for the motor to reach steady state, then read
+#     the running current as a baseline (or use a learned "healthy" value).
+#   - A pump pumping water draws its rated FLA (~12A). Running DRY draws
+#     noticeably LESS (~60-75% of FLA) because there is no hydraulic load.
+#   - If current falls below ~80% of the healthy/baseline value for >5s while
+#     the motor is commanded ON → declare dry-run, STOP, and apply the same
+#     ≥5 min restart lockout as the probe-based dry-run.
+#   - This is a second, independent dry-run layer on top of the GPIO34 probe —
+#     it still protects the pump even if a probe wire fails.
+#   - Calibrate thresholds against the actual motor on first install (the BL0942
+#     gives RMS current directly; thresholds are a % of measured running value).
 #
 # Hysteresis:
 #   - After stopping on HIGH float: wait until LOW float triggers before restarting
