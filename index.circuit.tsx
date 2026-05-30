@@ -214,6 +214,15 @@ export default () => (
       pcbY={0}
     />
 
+    {/* ESP32 DevKit orientation guide — silk between the two header rows.
+       Header pin1 (V3V3) is at the BOTTOM (y=-22.9); V5/VIN at the TOP
+       (y=+22.9). On the DevKit, VIN is at the USB end and 3V3 at the
+       antenna end, so the USB port faces the TOP edge and the PCB antenna
+       faces the BOTTOM. Keep the bottom (antenna) end clear of metal. */}
+    <silkscreentext text="ESP32 DEVKIT" pcbX={0} pcbY={4} anchorAlignment="center" fontSize={1.4} />
+    <silkscreentext text="USB / VIN  ^ TOP" pcbX={0} pcbY={20} anchorAlignment="center" fontSize={1.2} />
+    <silkscreentext text="3V3 / ANTENNA v BOT" pcbX={0} pcbY={-20} anchorAlignment="center" fontSize={1.2} />
+
     {/* Power/ground to the DevKit */}
     <trace from="ESP_L.V5_L" to="net.V5" />
     <trace from="ESP_L.V3V3" to="net.V3V3" />
