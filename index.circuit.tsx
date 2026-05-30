@@ -228,7 +228,9 @@ export default () => (
     {/* The DevKit's own USB still handles flashing; this is read/log  */}
     {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
     {/* ============================================================ */}
-    <silkscreentext text="DBG TX RX G" pcbX={22} pcbY={20} anchorAlignment="center" fontSize={1.2} />
+    {/* J_DBG centred in the bottom gap between J_AC (right edge -72) and
+       J_FL1 (left edge -16): gap centre x=-44. Above the connector row. */}
+    <silkscreentext text="DBG TX RX G" pcbX={-44} pcbY={-9} anchorAlignment="center" fontSize={1.2} />
     <pinheader
       name="J_DBG"
       pinCount={3}
@@ -238,8 +240,8 @@ export default () => (
       pinLabels={["TX", "RX", "GND"]}
       schX={4}
       schY={-6}
-      pcbX={22}
-      pcbY={16}
+      pcbX={-44}
+      pcbY={-15}
     />
     <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
     <trace from="J_DBG.RX" to="ESP_R.GPIO3" />
@@ -391,12 +393,11 @@ export default () => (
        4-pin: pin1/pin3 = one side, pin2/pin4 = other side; press bridges them.
        Wire pin1 -> GND, pin2 -> GPIO/pull-up node (SPST). Fit a tall keycap /
        extender or use a cover hole over the actuator for finger access. */}
-    {/* PAIR + RESET centred in the bottom-edge gap between J_AC (right edge
-       x=-72) and J_FL1 (left edge x=-16): gap centre x=-44, pair at -53/-35. */}
-    <silkscreentext text="PAIR" pcbX={-53} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <TactileButton name="BTN_PAIR" schX={6} schY={-7} pcbX={-53} pcbY={-15} />
-    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-45} pcbY={-21} />
-    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-53} pcbY={-21} />
+    {/* PAIR + RESET grouped below the HLK module (x=-76/-58). */}
+    <silkscreentext text="PAIR" pcbX={-76} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
+    <TactileButton name="BTN_PAIR" schX={6} schY={-7} pcbX={-76} pcbY={-15} />
+    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-68} pcbY={-21} />
+    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-76} pcbY={-21} />
     <trace from="BTN_PAIR.pin1" to="net.GND" />
     <trace from="BTN_PAIR.pin2" to="R_BPAIR.pin2" />
     <trace from="R_BPAIR.pin1" to="net.V3V3" />
@@ -404,10 +405,10 @@ export default () => (
     <trace from="C_BPAIR.pin1" to="ESP_R.GPIO0" />
     <trace from="C_BPAIR.pin2" to="net.GND" />
 
-    <silkscreentext text="RESET" pcbX={-35} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
-    <TactileButton name="BTN_RST" schX={10} schY={-7} pcbX={-35} pcbY={-15} />
-    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-27} pcbY={-21} />
-    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-35} pcbY={-21} />
+    <silkscreentext text="RESET" pcbX={-58} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
+    <TactileButton name="BTN_RST" schX={10} schY={-7} pcbX={-58} pcbY={-15} />
+    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-50} pcbY={-21} />
+    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-58} pcbY={-21} />
     <trace from="BTN_RST.pin1" to="net.GND" />
     <trace from="BTN_RST.pin2" to="R_BRST.pin2" />
     <trace from="R_BRST.pin1" to="net.V3V3" />
