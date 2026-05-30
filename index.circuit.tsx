@@ -88,6 +88,10 @@ export default () => (
     {/* J_AC at bottom-left edge (pcbRotation=0 → wire entry faces DOWN, out of board).
        With rotation 0: pin1(L) at x=center-5=-85, pin2(N) at x=-80, pin3(E) at x=-75.
        Aligned with sensor connectors at y=-42 for a clean bottom-edge connector row. */}
+    {/* Bottom-edge connector row — front (wire-entry) faces all flush at y=-47.58.
+       Each part has a different body depth (pad-to-face), so pcbY is offset per
+       part: WJ128V(J_AC)=5.58 -> pcbY=-42.0; DB128L(J_PR)=5.36 -> -42.22;
+       WJ500V(J_FL)=4.77 -> -42.81. */}
     <Terminal3P
       name="J_AC"
       pinLabels={AC_PINS}
@@ -141,7 +145,7 @@ export default () => (
        N goes from (-80,-42) right to (-80,-35) then LEFT to x=-93 then UP.
        L and N never cross because L is at x=-85 (left of N at x=-80).
        Gap between L and N lanes: 8mm centre-to-centre = 7.2mm edge-to-edge. */}
-    {/* L: up from bottom pin, straight to RV1.B, then on to HLK.ACL */}
+    {/* L: up from bottom pin (y=-42), straight to RV1.B, then HLK.ACL */}
     <trace from="J_AC.L" to="RV1.B" thickness="0.8mm"
       path={[{ x: -85, y: -42 }, { x: -85, y: 28 }, { x: -86.23, y: 28 }]} />
     <trace from="RV1.B" to="U_PSU.ACL" thickness="0.8mm"
@@ -153,7 +157,7 @@ export default () => (
       path={[{ x: -88.77, y: 28 }, { x: -93, y: 28 }, { x: -93, y: 11 }, { x: -88.8, y: 11 }]} />
     {/* E: short stub downward, away from L/N */}
     <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm"
-      path={[{ x: -75, y: -42 }, { x: -75, y: -45 }]} />
+      path={[{ x: -75, y: -42 }, { x: -75, y: -46 }]} />
     {/* Name the mains rails so the contactor-coil relay can tap them.
        LIVE is taken AFTER the MOV (RV1.B); NEUTRAL from RV1.A. The relay
        COM gets LIVE; the contactor coil return (J_COIL.A2) gets NEUTRAL.
@@ -384,9 +388,9 @@ export default () => (
     {/*  Float closes SW→GND → GPIO reads LOW                       */}
     {/* ============================================================ */}
     <Terminal2P name="J_FL1" pinLabels={{ pin1: "SW", pin2: "GND" }}
-      schX={-22} schY={-5} pcbX={-10} pcbY={-42} />
+      schX={-22} schY={-5} pcbX={-10} pcbY={-42.81} />
     <Terminal2P name="J_FL2" pinLabels={{ pin1: "SW", pin2: "GND" }}
-      schX={-18} schY={-5} pcbX={4} pcbY={-42} />
+      schX={-18} schY={-5} pcbX={4} pcbY={-42.81} />
 
     {/* TVS_FL: PRTR5V0U2X protects both float lines */}
     <PRTR5V0U2X name="TVS_FL" pinLabels={TVS_FL_PINS}
@@ -435,7 +439,7 @@ export default () => (
     {/*  ⚠ GPIO34/35 are input-only on ESP32 — no internal pull.    */}
     {/* ============================================================ */}
     <Terminal4P name="J_PR" pinLabels={PROBE_PINS}
-      schX={-14} schY={-5} pcbX={22} pcbY={-42} />
+      schX={-14} schY={-5} pcbX={22} pcbY={-42.22} />
 
     {/* TVS_PR12: protects probe lines 1 + 2 */}
     <PRTR5V0U2X name="TVS_PR12" pinLabels={TVS_PR12_PINS}
