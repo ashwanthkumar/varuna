@@ -57,9 +57,9 @@ GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/
 #   Double-flash    → pairing mode active (BTN_PAIR pressed)
 #
 # LED_MOTOR (yellow, GPIO17) — motor state
-#   ON  → pump motor is running (MK1 latched ON)
-#   OFF → motor stopped
-#   Set HIGH immediately after START pulse; clear immediately after STOP pulse.
+#   ON  → contactor energised, motor running
+#   OFF → contactor de-energised, motor stopped
+#   Set HIGH when GPIO23 goes HIGH; clear when GPIO23 goes LOW (track together).
 #
 # LED_FL1 (blue, GPIO19) — float switch 1 (tank LOW sensor)
 #   ON  → float has triggered — overhead tank is LOW, pump should run

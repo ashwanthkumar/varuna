@@ -79,7 +79,7 @@ The SRD-05VDC-SL-C (C35449) pin mapping was **inferred from the footprint geomet
 
 - pin1 = NC, pin2 = COILA, pin3 = COILB, pin4 = NO, pin5 = COM
 
-**Confirm NO vs NC with a multimeter before field-wiring to the MK1 remote terminals.**
+**Confirm NO vs NC with a multimeter before field-wiring to the contactor coil (J_COIL).**
 
 ---
 
@@ -100,8 +100,9 @@ See [`firmware.txt`](./firmware.txt) for the full firmware specification. Key po
 - **Probe excitation**: GPIO33 must be pulsed (HIGH for 1–5ms, then LOW, repeat every ≥100ms). Never leave it permanently HIGH — DC through SS probes causes electrolysis.
 - **Probe reading**: GPIO34/35/32 read HIGH when water bridges probe to COM during excitation pulse. They have external pull-DOWN (not pull-up) — this is the reverse of the float switches.
 - **Float switches**: GPIO36/39 read LOW when float triggers (pull-up topology, same as original design).
-- **Relay pulses**: Assert GPIO23 (START) or GPIO22 (STOP) HIGH for 300–500ms only. Never hold permanently. Never fire both simultaneously.
-- **Boot safety**: On every boot, issue a STOP pulse before entering normal operation — the MK1 may still be latched ON from a previous session.
+- **Motor relay (held, not pulsed)**: GPIO23 HIGH = contactor coil energised = motor runs; LOW = motor off. RLY_MOTOR switches the 230VAC coil via J_COIL.
+- **Overload sense**: GPIO21 reads the thermal overload relay's NC aux contact via J_OL. LOW = healthy, HIGH = tripped (latch fault, require manual reset).
+- **Boot safety**: On every boot, set GPIO23 LOW first so the contactor defaults OFF.
 - **GPIO33 boot state**: Configure as OUTPUT LOW before any other setup to avoid floating excitation into the probes.
 
 ---
@@ -128,10 +129,11 @@ Key C-numbers for quick reference:
 - **J_PR** DB128L-5.08-4P → C2827883
 - **U_PSU** HLK-5M05 → C209907
 - **U_DRV** ULN2003ADR → C7512
-- **RLY1/2** SRD-05VDC-SL-C → C35449
+- **RLY_MOTOR** SRD-05VDC-SL-C → C35449
 - **RV1** TMOV14RP275E MOV → C1528070
 - **SW1** SS12D10G3 slide switch → C7431053
-- **J_AC/START/STOP** WJ128V-5.0-3P (3-pole) → C8270
+- **J_AC** WJ128V-5.0-3P (3-pole, L/N/E) → C8270
+- **J_COIL / J_OL** WJ500V-5.08-2P (2-pole) → C8465
 - **J_SW1–8** WJ500V-5.08-2P (2-pole) → C8465
 
 ---
@@ -140,5 +142,5 @@ Key C-numbers for quick reference:
 
 - Size: 200×120mm, 2-layer
 - Mounting: 4× M3 holes at corners
-- Output terminals (J_START, J_STOP): `pcbRotation={90}` — face outward toward the right board edge for field wiring access
+- Output terminals (J_COIL, J_OL): `pcbRotation={90}` — face outward toward the right board edge for field wiring access
 - `__snapshots__/` is in `.gitignore` — regenerate with `tsci snapshot --pcb-only`
