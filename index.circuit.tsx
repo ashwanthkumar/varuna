@@ -239,13 +239,13 @@ export default () => (
     {/* access through a cover hole. Cross TX<->RX at the adapter.     */}
     {/* ============================================================ */}
     {/* J_DBG = S3B-XH-A (JST-XH 3-pin RIGHT-ANGLE, JLC C157928). Latching,
-       polarized, side-entry. Footprint: pads at local y=0, body extends +y
-       to +9.6 with the mating OPENING at the far +y end. pcbRotation=0 keeps
-       the opening facing the board INTERIOR (top) so the debug lead plugs in
-       from ABOVE the board surface — no connector depth below the PCB when
-       mounted, and nothing protrudes past the bottom mounting edge.
-       pcbY=-44.9 puts the connector BOTTOM edge at y=-47.6, flush on the same
-       bottom line as J_AC/J_FL/J_PR. Centred in the J_AC--J_FL1 gap at x=-44.
+       polarized, side-entry. Footprint: pads at local y=0, body courtyard
+       y[-2.69,+9.6] with the mating OPENING at the far +y end. pcbRotation=180
+       flips the opening to the -y (board-edge) side so it faces OUTWARD — a
+       debug lead plugs in horizontally from the bottom board edge, matching
+       J_AC/J_FL/J_PR which also face outward.
+       pcbY=-37.98 puts the body BOTTOM edge at y=-47.58, flush on the same
+       bottom line as the other connectors. Centred in the J_AC--J_FL1 gap.
        pin1=TX(GPIO1), pin2=RX(GPIO3), pin3=GND. 3 pins is sufficient —
        flashing uses the DevKit USB; this is a serial-log tap only. */}
     <silkscreentext text="DBG TX RX G" pcbX={-44} pcbY={-33} anchorAlignment="center" fontSize={1.2} />
@@ -254,9 +254,9 @@ export default () => (
       pinLabels={{ pin1: "TX", pin2: "RX", pin3: "GND" }}
       schX={4}
       schY={-6}
-      pcbRotation={0}
+      pcbRotation={180}
       pcbX={-44}
-      pcbY={-44.9}
+      pcbY={-37.98}
     />
     <trace from="J_DBG.TX" to="ESP_R.GPIO1" />
     <trace from="J_DBG.RX" to="ESP_R.GPIO3" />

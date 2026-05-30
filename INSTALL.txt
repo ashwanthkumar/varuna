@@ -1,0 +1,119 @@
+==============================================================================
+ VARUNA — Installation & Panel Wiring Guide
+ ESP32 Water-Level Pump Controller (2HP single-phase, 230V, DOL)
+==============================================================================
+
+⚠ DANGER — 230V AC MAINS
+  - Installation must be done by a qualified electrician.
+  - Isolate mains at the DB / main switch before wiring. Verify dead.
+  - This board switches a contactor COIL only; the motor current is carried by
+    the external contactor + overload, NOT by the PCB.
+
+------------------------------------------------------------------------------
+ 1. WHAT'S IN THE PANEL
+------------------------------------------------------------------------------
+  - Varuna PCB (this board), with ESP32 DevKit plugged in
+  - MCB 2A Type-C ............ board supply protection (DB or panel)
+  - MCB 20A Type-C ........... motor circuit protection (DB or panel)
+  - Contactor: LEYDEN CJX2-3211 (32A AC-3, 220/230VAC coil, 3-pole)
+  - Overload : MAGNUM MaK-1 2P (13-21A) — clips under the contactor, dial ~13A
+  - SS probes x3 + float switches x2 in the tank/sump, wired back over CAT6
+
+------------------------------------------------------------------------------
+ 2. BOARD POWER  (J_AC — 3-pole terminal, bottom-left)
+------------------------------------------------------------------------------
+  J_AC.L  ◄── Live   (from 2A MCB)
+  J_AC.N  ◄── Neutral
+  J_AC.E  ◄── Earth  (panel/enclosure ground bond)
+
+  The on-board MOV (RV1) clamps surges; HLK-5M05 makes the 5V rail.
+  SW1 (slide switch) turns the whole controller ON/OFF.
+  LED "PWR" lights when the board has power.
+
+------------------------------------------------------------------------------
+ 3. MOTOR CONTROL — CONTACTOR COIL  (J_COIL — 2-pole terminal, right side)
+------------------------------------------------------------------------------
+  The PCB relay (RLY_MOTOR) switches the contactor coil. Held ON = motor runs.
+
+    J_COIL.A1 ──► Contactor terminal A1   (switched Live to the coil)
+    J_COIL.A2 ──► Contactor terminal A2   (Neutral)
+
+  A1 / A2 are marked on the CJX2-3211 body — match them directly.
+
+  RECOMMENDED (defence-in-depth): run the coil's A1 feed THROUGH the overload
+  relay's NC contact (95-96) in the panel, so an overload trip drops the
+  contactor even if the firmware hangs:
+
+    J_COIL.A1 ──► OL 95 ──(NC)──► OL 96 ──► Contactor A1
+    J_COIL.A2 ────────────────────────────► Contactor A2
+
+------------------------------------------------------------------------------
+ 4. OVERLOAD TRIP SENSE  (J_OL — 2-pole terminal, right side)
+------------------------------------------------------------------------------
+  Lets the ESP32 know the overload tripped (for alerts / latch-off).
+
+    J_OL.OL  ──► Overload aux terminal 95  ┐ NC contact
+    J_OL.GND ──► Overload aux terminal 96  ┘ (opens when tripped)
+
+  GPIO21 reads it: closed = healthy (LOW), open = TRIPPED (HIGH).
+
+  NOTE: if you use the series wiring in section 3, you can tap the SAME 95-96
+  aux for sensing, or use a second aux contact if the overload has one.
+
+------------------------------------------------------------------------------
+ 5. MOTOR POWER PATH  (NOT through the PCB)
+------------------------------------------------------------------------------
+    Live (20A MCB) ──► Contactor L1 ──► T1 ──► Overload ──► Motor L
+    Neutral ────────────────────────────────────────────► Motor N
+    Earth ──────────────────────────────────────────────► Motor frame
+
+  3-pole contactor on a single-phase motor: for longer contact life, parallel
+  two poles for the Live conductor (bridge L1+L2 -> T1+T2), route N through the
+  third pole or straight. Set the overload dial to the motor nameplate FLA
+  (~12-13A for 2HP single-phase).
+
+------------------------------------------------------------------------------
+ 6. SENSORS — 30-40m CAT6 from tank/sump  (bottom-edge terminals)
+------------------------------------------------------------------------------
+  Use ferrules on all CAT6 conductors. Suggested pair allocation:
+
+    J_FL1 (SW/GND) .... Float switch 1 — Overhead tank LOW   (CAT6 pair 1)
+    J_FL2 (SW/GND) .... Float switch 2 — Overhead tank HIGH  (CAT6 pair 2)
+    J_PR  (4-pole) .... SS probes: PR1=LOW, PR2=MID, PR3=HIGH, COM=common
+                        (CAT6 pair 3 = COM+PR1, pair 4 = PR2+PR3)
+
+  Float switches are dry contacts (2 wires each). SS probes share one COM
+  electrode (always submerged) + one wire per level. On-board TVS arrays
+  protect every line against surges on the long outdoor run.
+
+------------------------------------------------------------------------------
+ 7. LOCAL CONTROLS & INDICATORS (visible through the transparent cover)
+------------------------------------------------------------------------------
+  LED row (top):  PWR  WIFI  MOTOR  FL1  FL2  PRB
+  Buttons:        PAIR  (hold 3s -> WiFi pairing / config mode)
+                  RESET (hold 5s -> factory reset)
+  SW1:            controller power ON/OFF (slide)
+  J_DBG:          3-pin UART (TX/RX/GND) — clip a 3.3V USB-TTL adapter for
+                  serial logs during service. Firmware flashing uses the
+                  ESP32 DevKit's own USB port.
+
+------------------------------------------------------------------------------
+ 8. ESP32 DEVKIT ORIENTATION
+------------------------------------------------------------------------------
+  Seat the DevKit per the silkscreen between the header rows:
+    USB / VIN end  -> TOP edge of the board
+    3V3 / ANTENNA  -> BOTTOM edge
+  Keep the antenna end clear of metal for WiFi range.
+
+------------------------------------------------------------------------------
+ 9. FIRST POWER-UP
+------------------------------------------------------------------------------
+  1. Double-check all mains terminations and earth bonding.
+  2. Confirm overload dial is set to motor FLA.
+  3. Power on via SW1 — PWR LED on, WIFI LED blinks while connecting.
+  4. Hold PAIR 3s to provision WiFi if it's the first boot.
+  5. Verify dry-run protection: with the sump LOW probe dry, the motor must
+     NOT start. Confirm before leaving the install unattended.
+
+  See firmware.txt for full GPIO map and control logic, parts.txt for the BOM.
+==============================================================================
