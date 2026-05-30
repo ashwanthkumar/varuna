@@ -119,7 +119,7 @@ export default () => (
       schY={6}
       pcbRotation={90}
       pcbX={-58}
-      pcbY={42}
+      pcbY={34}
     />
     <capacitor name="C1" capacitance="100uF" footprint="1206" schX={-13} schY={2.5} pcbX={-48} pcbY={6} />
     <capacitor name="C2" capacitance="100nF" footprint="0603" schX={-11} schY={2.5} pcbX={-48} pcbY={1} />
