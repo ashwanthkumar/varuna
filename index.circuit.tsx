@@ -1,37 +1,42 @@
 /**
  * Varuna — ESP32 Water-Level Pump Controller
  * ------------------------------------------------------------------
- * Controls a 2HP single-phase motor via an L&T MK1 DOL starter by
- * emulating its remote START / STOP pushbuttons with a 2-channel relay.
+ * Controls a 2HP single-phase motor by directly driving an external DOL
+ * CONTACTOR COIL (e.g. CJX2-3211 / LC1D32, 220VAC coil) via an onboard relay.
+ * The board + contactor + thermal overload relay together form the DOL starter,
+ * all mounted in one DIN-rail enclosure. The contactor (NOT this PCB) carries
+ * the motor current; the PCB relay only switches the ~200mA coil.
  *
  *  AC Mains (230V) ──► MOV (RV1) ──► HLK-5M05 (AC→5V DC)
- *        5V ──► [PWR SW] ──► ESP32 DevKit (VIN) + ULN2003 + Relay coils
- *      3V3 (from DevKit LDO) ──► float-switch pull-ups
+ *        5V ──► [PWR SW] ──► ESP32 DevKit (VIN) + ULN2003 + relay coil
+ *      3V3 (from DevKit LDO) ──► sensor pull-ups
  *
- *  ESP32 GPIO23 ─► ULN2003 IN1 ─► RLY1 (START)  COM/NO/NC ─► MK1 remote START
- *  ESP32 GPIO22 ─► ULN2003 IN2 ─► RLY2 (STOP)   COM/NO/NC ─► MK1 remote STOP
- *  8x float switches ─► RC + pull-up front-end ─► input-capable GPIOs
- *  GPIO4 ─► status LED
+ *  GPIO23 ─► ULN2003 IN1 ─► RLY_MOTOR (HELD) ─► J_COIL ─► contactor A1/A2
+ *  GPIO21 ◄─ J_OL ◄─ thermal-overload aux NC contact (trip sense)
+ *  2x float switches + 3x SS probes ─► protected front-ends ─► GPIOs
+ *  6x LEDs + 2 buttons (pairing / factory reset)
  *
- * Real JLCPCB footprints are now used for every non-passive (imported into
- * ./imports via `tsci import <C-part>`):
- *   HLK-5M05 (C209907), ULN2003ADR (C7512), SRD-05VDC-SL-C x2 (C35449),
- *   WJ128V-5.0-3P AC/output terminals (C8270), WJ500V-5.08-2P float terminals (C8465).
+ * EXTERNAL DOL components (DIN-rail, NOT on PCB — see parts.txt):
+ *   Contactor      : CJX2-3211 (32A AC-3, 220VAC coil)  -> wired to J_COIL
+ *   Overload relay : LRD-22 (clips under contactor, dial to motor FLA ~12A)
+ *                    its 95-96 NC aux contact -> wired to J_OL for trip sense
+ *   Upstream       : 20A Type-C MCB in the DB panel
  *
- * FLOORPLAN (board 200 x 120 mm, origin = center, x∈[-100,100] y∈[-60,60])
+ * FLOORPLAN (board 200 x 100 mm, origin = center, x∈[-100,100] y∈[-50,50])
  *  - Left  : HIGH-VOLTAGE zone — AC terminal, MOV, HLK-5M05, power switch
  *  - Center: ESP32 DevKit on two 19-pin female headers (rotated)
- *  - Right : ULN2003 driver, 2x relay, START/STOP 3-pole output terminals, LED
- *  - Bottom: 8x 2-pole float-switch terminals with RC/pull-up front-ends
+ *  - Right : ULN2003, RLY_MOTOR, J_COIL (coil out), J_OL (overload sense), LEDs
+ *  - Bottom: float + probe terminals with protected front-ends
  *
  * ⚠ SAFETY / FAB NOTES
  *  - Keep >=3mm creepage/clearance on the AC side (J_AC, RV1, U_PSU AC pins)
- *    and on the relay-contact side (RLY/J_START/J_STOP). Route those by hand.
- *  - The relay contacts only switch the MK1's low-current remote pushbutton
- *    loop; the 2HP motor current is carried by the MK1 contactor, not this board.
+ *    AND on the coil-switching side (RLY_MOTOR contacts, J_COIL, net.LIVE/NEUTRAL
+ *    which now carry 230VAC across to the relay). Hand-route + widen these.
  *  - RELAY CONTACT MAPPING (pin2/pin3 = coil; pin5 = COM; pin1/pin4 = NO/NC) is
- *    inferred from the C35449 footprint. CONFIRM NO vs NC with a multimeter /
- *    datasheet before field-wiring to the MK1.
+ *    inferred from the C35449 footprint. CONFIRM NO vs NC with a multimeter
+ *    before field-wiring to the contactor coil.
+ *  - The thermal overload relay (LRD) provides motor jam/overcurrent protection
+ *    — it is mandatory and lives on the DIN rail, not the PCB.
  *  - Do NOT wrap positioned children in <group> here — a group re-anchors child
  *    pcbX/pcbY to the group origin and scrambles this absolute floorplan.
  */
@@ -55,7 +60,12 @@ const ULN_PINS = {
 } as const
 const HLK_PINS = { pin1: "ACN", pin2: "ACL", pin3: "GND", pin4: "V5" } as const
 const AC_PINS = { pin1: "L", pin2: "N", pin3: "E" } as const
-const OUT_PINS = { pin1: "COM", pin2: "NO", pin3: "NC" } as const
+// J_COIL drives the external DOL contactor coil (e.g. CJX2-3211, 220VAC coil):
+//   A1 = switched Live (relay NO), A2 = Neutral. Relay holds closed = motor ON.
+const COIL_PINS = { pin1: "A1", pin2: "A2" } as const
+// J_OL = thermal-overload-relay aux NC contact sense (dry contact, opto-isolated
+//   is overkill — it is a volt-free contact). OL pin pulled up; GND is the return.
+const OL_PINS = { pin1: "OL", pin2: "GND" } as const
 const SW_PINS = { pin1: "SW", pin2: "GND" } as const
 // SS12D10G3 SPDT slide switch used as the onboard power ON/OFF for the whole
 // controller: pin2 = common (wiper, fed by PSU 5V), pin1 = ON throw to the
@@ -144,6 +154,14 @@ export default () => (
     {/* E: short stub downward, away from L/N */}
     <trace from="J_AC.E" to="net.EARTH" thickness="0.8mm"
       path={[{ x: -75, y: -42 }, { x: -75, y: -45 }]} />
+    {/* Name the mains rails so the contactor-coil relay can tap them.
+       LIVE is taken AFTER the MOV (RV1.B); NEUTRAL from RV1.A. The relay
+       COM gets LIVE; the contactor coil return (J_COIL.A2) gets NEUTRAL.
+       NOTE: these carry 230VAC across the board to the relay zone — the
+       autorouter handles them, but for production verify >=3mm creepage
+       around RLY_MOTOR contacts and J_COIL and widen by hand if needed. */}
+    <trace from="RV1.B" to="net.LIVE" thickness="0.8mm" />
+    <trace from="RV1.A" to="net.NEUTRAL" thickness="0.8mm" />
     {/* DC-side: PSU 5V -> onboard slide switch -> board 5V rail */}
     <trace from="U_PSU.V5" to="SW1.P5_IN" />
     <trace from="SW1.P5_OUT" to="net.V5" />
@@ -199,9 +217,10 @@ export default () => (
     <trace from="ESP_R.GND_R2" to="net.GND" />
 
     {/* ============================================================ */}
-    {/* DRIVER + 2-CH RELAY:  emulate MK1 remote START / STOP        */}
+    {/* DRIVER + RELAY:  switch the external DOL contactor coil      */}
     {/* ============================================================ */}
-    {/* ULN2003A darlington array (built-in flyback diodes on COM/pin9). */}
+    {/* ULN2003A darlington array (built-in flyback diodes on COM/pin9).
+       Only IN1/OUT1 used (single motor). GPIO23 = motor ON/OFF (HELD, not pulsed). */}
     <ULN2003ADR
       name="U_DRV"
       pinLabels={ULN_PINS}
@@ -211,43 +230,67 @@ export default () => (
       pcbY={2}
     />
     <trace from="ESP_R.GPIO23" to="U_DRV.IN1" />
-    <trace from="ESP_R.GPIO22" to="U_DRV.IN2" />
     <trace from="U_DRV.GND" to="net.GND" />
     <trace from="U_DRV.COM" to="net.V5" />
 
-    {/* RLY1 = START, RLY2 = STOP.  SRD-05VDC-SL-C (JLC C35449)         */}
-    {/* No <group> wrapper — keep absolute pcbX/pcbY (see header note). */}
-    {[
-      { name: "RLY1", drv: "OUT1", term: "J_START", py: 16, sy: 3 },
-      { name: "RLY2", drv: "OUT2", term: "J_STOP", py: -14, sy: 0.5 },
-    ].map((r) => (
-      <>
-        <SRD_05VDC_SL_C
-          name={r.name}
-          pinLabels={RELAY_PINS}
-          schX={11}
-          schY={r.sy}
-          pcbX={56}
-          pcbY={r.py}
-        />
-        {/* coil: COILA -> 5V, COILB <- ULN open-collector output */}
-        <trace from={`${r.name}.COILA`} to="net.V5" />
-        <trace from={`${r.name}.COILB`} to={`U_DRV.${r.drv}`} />
-        {/* dry contacts: 3-pole terminal rotated to face the right board edge */}
-        <Terminal3P
-          name={r.term}
-          pinLabels={OUT_PINS}
-          schX={14}
-          schY={r.sy}
-          pcbRotation={90}
-          pcbX={76}
-          pcbY={r.py}
-        />
-        <trace from={`${r.term}.COM`} to={`${r.name}.COM`} />
-        <trace from={`${r.term}.NO`} to={`${r.name}.NO`} />
-        <trace from={`${r.term}.NC`} to={`${r.name}.NC`} />
-      </>
-    ))}
+    {/* RLY_MOTOR = SRD-05VDC-SL-C (JLC C35449). Switches the CONTACTOR COIL,
+       not the motor. Coil current (~200mA @230VAC for CJX2-32) is well within
+       the relay's 10A/250VAC contact rating.
+         COM  <- mains Live (net.LIVE, after MOV)
+         NO   -> J_COIL.A1  (switched Live to contactor A1)
+         COILA<- 5V, COILB <- ULN OUT1
+       GPIO23 HIGH -> relay closes -> coil energised -> contactor pulls in -> motor runs. */}
+    <SRD_05VDC_SL_C
+      name="RLY_MOTOR"
+      pinLabels={RELAY_PINS}
+      schX={11}
+      schY={2}
+      pcbX={50}
+      pcbY={6}
+    />
+    <trace from="RLY_MOTOR.COILA" to="net.V5" />
+    <trace from="RLY_MOTOR.COILB" to="U_DRV.OUT1" />
+
+    {/* J_COIL: 2-pole terminal to the contactor coil (A1/A2).
+       A1 = switched Live from relay NO; A2 = Neutral. */}
+    <Terminal2P
+      name="J_COIL"
+      pinLabels={COIL_PINS}
+      schX={14}
+      schY={3}
+      pcbRotation={90}
+      pcbX={76}
+      pcbY={16}
+    />
+    {/* mains Live in -> relay COM; relay NO -> coil A1 (hand-routed, 0.8mm) */}
+    <trace from="RLY_MOTOR.COM" to="net.LIVE" thickness="0.8mm" />
+    <trace from="RLY_MOTOR.NO" to="J_COIL.A1" thickness="0.8mm" />
+    <trace from="J_COIL.A2" to="net.NEUTRAL" thickness="0.8mm" />
+
+    {/* J_OL: thermal-overload-relay aux NC contact sense (volt-free).
+       Wire the overload's 95-96 NC contact across OL-GND. GPIO21 reads:
+       HIGH (pulled up) = healthy; LOW (contact closed to GND) = NOT tripped.
+       When the overload TRIPS, the NC contact OPENS -> GPIO21 reads HIGH.
+       Firmware: treat sustained HIGH while motor commanded ON as a trip fault. */}
+    <Terminal2P
+      name="J_OL"
+      pinLabels={OL_PINS}
+      schX={14}
+      schY={-2}
+      pcbRotation={90}
+      pcbX={76}
+      pcbY={-10}
+    />
+    <resistor name="RU_OL" resistance="10k" footprint="0603" schX={12} schY={-2} pcbX={60} pcbY={-10} />
+    <resistor name="RS_OL" resistance="220" footprint="0603" schX={12} schY={-3} pcbX={60} pcbY={-15} />
+    <capacitor name="CF_OL" capacitance="100nF" footprint="0603" schX={13} schY={-2} pcbX={64} pcbY={-10} />
+    <trace from="RU_OL.pin1" to="net.V3V3" />
+    <trace from="RU_OL.pin2" to="ESP_R.GPIO21" />
+    <trace from="CF_OL.pin1" to="ESP_R.GPIO21" />
+    <trace from="CF_OL.pin2" to="net.GND" />
+    <trace from="RS_OL.pin1" to="ESP_R.GPIO21" />
+    <trace from="RS_OL.pin2" to="J_OL.OL" />
+    <trace from="J_OL.GND" to="net.GND" />
 
     {/* ============================================================ */}
     {/* STATUS LED (GPIO4)                                           */}

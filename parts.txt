@@ -8,15 +8,22 @@ SW1      SS12D10G3            C7431053  SPDT slide switch, vertical, controller 
 # ── Mains protection (no PCB fuse — upstream 2A MCB in DB panel) ──────────────
 RV1      TMOV14RP275E         C1528070  MOV varistor 275Vac, across L-N at AC terminal
 
-# ── Motor control ─────────────────────────────────────────────────────────────
-U_DRV    ULN2003ADR           C7512     Darlington array SOIC16 (GPIO→relay driver)
-RLY1     SRD-05VDC-SL-C       C35449    5V SPDT relay — START (emulates MK1 START button)
-RLY2     SRD-05VDC-SL-C       C35449    5V SPDT relay — STOP  (emulates MK1 STOP button)
+# ── Motor control (PCB switches the external contactor COIL) ─────────────────
+U_DRV     ULN2003ADR          C7512     Darlington array SOIC16 (GPIO→relay driver)
+RLY_MOTOR SRD-05VDC-SL-C      C35449    5V SPDT relay — switches 230VAC contactor coil
 
-# ── AC & output connectors (5.0mm pitch, 3-pole) ──────────────────────────────
-J_AC     WJ128V-5.0-3P        C8270     AC mains input: L / N / E  (bottom edge)
-J_START  WJ128V-5.0-3P        C8270     MK1 remote START: COM / NO / NC (right edge)
-J_STOP   WJ128V-5.0-3P        C8270     MK1 remote STOP:  COM / NO / NC (right edge)
+# ── AC & coil connectors ──────────────────────────────────────────────────────
+J_AC     WJ128V-5.0-3P        C8270     AC mains input: L / N / E (3-pole, bottom edge)
+J_COIL   WJ500V-5.08-2P       C8465     Contactor coil out: A1 (switched Live) / A2 (Neutral)
+J_OL     WJ500V-5.08-2P       C8465     Overload relay aux NC contact sense: OL / GND
+
+# ── EXTERNAL DOL components (DIN-rail, NOT on PCB — install in enclosure) ─────
+#  Contactor  : CJX2-3211 / LC1D32, 32A AC-3, 220VAC coil  → wire coil to J_COIL
+#  Overload   : LRD-22 thermal overload (clips under contactor), set dial to
+#               motor FLA (~12A for 2HP single-phase). 95-96 NC aux → J_OL.
+#  MCB        : 20A Type-C in DB panel (upstream, handles motor inrush)
+#  (For lighter duty a CJX2-1811 18A contactor + LRD-16 also works, but 32A is
+#   recommended for daily-cycling single-phase pumps — see chat rationale.)
 
 # ── Sensor inputs — 30-40m CAT6 UTP run from overhead tank ───────────────────
 J_FL1    WJ500V-5.08-2P       C8465     Float switch 1: tank LOW  (bottom edge, CAT6 pair 1)

@@ -15,8 +15,11 @@ GPIO32  INPUT  SS Probe 3 — Sump HIGH level            (pull-DOWN board, reads
 
 # OUTPUTS (motor control)
 GPIO33  OUTPUT Probe AC excitation                     (pulse HIGH briefly to drive probe common; NEVER leave permanently HIGH)
-GPIO23  OUTPUT Relay 1 START (ULN2003 IN1)             (active HIGH, momentary 300–500ms pulse to MK1 remote START)
-GPIO22  OUTPUT Relay 2 STOP  (ULN2003 IN2)             (active HIGH, momentary 300–500ms pulse to MK1 remote STOP)
+GPIO23  OUTPUT RLY_MOTOR — contactor coil (ULN2003 IN1) (active HIGH = HELD while motor runs; LOW = motor off. NOT a pulse.)
+
+# OVERLOAD SENSE (input)
+GPIO21  INPUT  J_OL — thermal overload aux NC contact   (board pull-UP. Contact CLOSED to GND = healthy => reads LOW.
+#                                                         Overload TRIPPED => contact opens => reads HIGH.)
 
 # OUTPUTS (LEDs — all active HIGH, GPIO-controlled)
 GPIO4   OUTPUT LED1    — WiFi / system status (green)  (slow blink=connected, fast blink=fault, solid=pump running)
@@ -150,11 +153,13 @@ GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/
 # START pump when ALL of:
 #   - GPIO36 reads LOW  (tank needs water)
 #   - GPIO34 reads HIGH (sump has minimum water — dry-run protection)
+#   - GPIO21 reads LOW  (overload relay healthy, not tripped)
 #   - Motor is not already running
 #
 # STOP pump when ANY of:
 #   - GPIO39 reads LOW  (tank is full)
 #   - GPIO34 reads LOW  (sump empty → dry-run protection)
+#   - GPIO21 reads HIGH (overload TRIPPED — latch fault, require manual reset)
 #   - Motor has run >30 continuous minutes (safety timeout)
 #
 # Hysteresis:
@@ -187,11 +192,11 @@ GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/
 # ─────────────────────────────────────────────────────────────
 #
 #   1. Configure GPIO33 as OUTPUT LOW  (probe excitation off — do this FIRST)
-#   2. Configure GPIO23, GPIO22 as OUTPUT LOW  (relays off)
+#   2. Configure GPIO23 as OUTPUT LOW   (contactor coil OFF — motor must default off)
 #   3. Configure GPIO17,19,18,5,4 as OUTPUT LOW  (all LEDs off)
-#   4. Configure GPIO0, GPIO16 as INPUT (buttons)
-#   5. Issue STOP pulse on GPIO22  (clear any latched MK1 state from last session)
-#   6. Turn on LED_PWR is hardware — already on
+#   4. Configure GPIO0, GPIO16 as INPUT (buttons), GPIO21 as INPUT (overload sense)
+#   5. Confirm GPIO23 LOW so the contactor is de-energised before anything else.
+#   6. LED_PWR is hardware — already on
 #   7. Blink LED1 fast while connecting to WiFi
 #   8. Once connected: LED1 slow blink. Begin automation loop.
 #   9. If no WiFi credentials: enter pairing mode automatically.
@@ -201,10 +206,14 @@ GPIO16  INPUT  BTN_RST  — Factory reset                (hold 5s → erase NVS/
 # ─────────────────────────────────────────────────────────────
 #
 # 1. Never run pump when GPIO34 (sump LOW probe) reads LOW — dry run destroys pump.
-# 2. Never hold relays HIGH permanently — always pulse (300–500ms max).
-# 3. Never energise both relays at the same time.
-# 4. Minimum 2s lockout between any START and STOP commands.
-# 5. 30-minute continuous run timeout — stop and alert via MQTT.
-# 6. GPIO33 must be LOW on boot before any other setup.
+# 2. Never energise the contactor (GPIO23 HIGH) without first checking GPIO21
+#    (overload) is healthy and GPIO34 (dry-run) shows water.
+# 3. On overload trip (GPIO21 HIGH while running): drop GPIO23 LOW immediately and
+#    latch the fault — require manual/button reset before restarting.
+# 4. 30-minute continuous run timeout — stop and alert via MQTT.
+# 5. GPIO33 must be LOW on boot before any other setup.
+# 6. GPIO23 (contactor coil) must be LOW on boot — motor defaults OFF.
 # 7. WiFi loss must NOT stop the motor mid-run — continue local automation.
 # 8. All sensor state changes must be confirmed for ≥50ms before acting.
+# 9. Defence-in-depth: also wire the overload NC contact physically in series with
+#    the contactor coil in the panel, so a trip stops the motor even if firmware hangs.

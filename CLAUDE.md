@@ -2,9 +2,13 @@
 
 ## Project overview
 
-ESP32-based water-level automation board that controls a 2HP single-phase (230V) motor via an **L&T MK1 DOL starter**. It does **not** switch the contactor coil directly — it emulates the MK1's remote START/STOP pushbuttons via a 2-channel relay. Motor current is carried entirely by the MK1 contactor; only the low-current remote loop passes through this board's relay contacts.
+ESP32-based water-level automation board that controls a 2HP single-phase (230V) motor by directly driving an **external DOL contactor coil** (CJX2-3211 / LC1D32, 220VAC coil). The board + contactor + thermal overload relay form the DOL starter, all in one DIN-rail enclosure. The contactor (not the PCB) carries motor current; the onboard relay only switches the ~200mA coil.
 
-Control flow: `ESP32 GPIO23/22 → ULN2003 → RLY1/RLY2 → J_START/J_STOP terminals → MK1 remote loop`
+Control flow: `ESP32 GPIO23 → ULN2003 → RLY_MOTOR (held) → J_COIL → contactor A1/A2 → motor`
+
+Overload trip sense: `thermal overload relay 95-96 NC contact → J_OL → GPIO21` (HIGH = tripped).
+
+History: originally emulated an L&T MK1 starter's remote START/STOP buttons via a 2-channel relay (RLY1/RLY2 → J_START/J_STOP). Replaced with direct contactor-coil control — simpler firmware (hold vs pulse), simpler wiring, no MK1 needed.
 
 Power: `230V AC → RV1 (MOV) → HLK-5M05 → 5V → SW1 (slide switch) → ESP32 + relays`
 
