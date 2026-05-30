@@ -63,10 +63,11 @@ R_PRB    330Ω 0603             —         LED_PRB current limit
 
 # ── Buttons ───────────────────────────────────────────────────────────────────
 # Active-LOW momentary pushbuttons. Board has 10k pull-up + 100nF debounce per button.
-BTN_PAIR TALL THT tactile 6mm  —         WiFi pairing/config (hold 3s) → GPIO0. Use a
-#                                         tall actuator (>=9-13mm) to reach the cover hole.
-BTN_RST  TALL THT tactile 6mm  —         Factory reset (hold 5s) → GPIO16. Tall actuator
-#                                         to reach cover hole. Labelled PAIR/RESET on silk.
+BTN_PAIR TS-1101-C-W          C318938   6x6mm THT tactile, WiFi pairing/config (hold 3s) → GPIO0
+BTN_RST  TS-1101-C-W          C318938   6x6mm THT tactile, factory reset (hold 5s) → GPIO16
+#  Both labelled PAIR/RESET on silk, grouped below the HLK module. For finger access
+#  through the transparent cover, fit a tall button cap/extender or a cover hole over
+#  the 6x6 actuator (footprint is fixed; cap height is a purchasing choice).
 #  NOTE: 6 LEDs are grouped in a labelled row (PWR/WIFI/MOTOR/FL1/FL2/PRB) at the top
 #        edge, visible through the transparent front cover (no light pipes/wiring needed).
 R_BPAIR  10kΩ 0603             —         BTN_PAIR pull-up
