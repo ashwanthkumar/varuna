@@ -354,14 +354,18 @@ export default () => (
     <trace from="LED_PRB.pin2" to="net.GND" />
 
     {/* ============================================================ */}
-    {/* BUTTONS                                                      */}
-    {/* BTN_PAIR : WiFi pairing mode (GPIO0 — boot pin, runtime OK) */}
-    {/* BTN_RST  : factory reset (GPIO16)                           */}
-    {/* Active-LOW (button shorts to GND), 10k pull-up + 100nF debounce */}
+    {/* BUTTONS — below the HLK module, labelled for transparent cover */}
+    {/* BTN_PAIR : WiFi pairing / config mode (GPIO0 — boot pin, runtime OK) */}
+    {/* BTN_RST  : factory reset (GPIO16)                            */}
+    {/* Active-LOW (button shorts to GND), 10k pull-up + 100nF debounce. */}
+    {/* Use TALL through-hole tactile buttons so the actuator reaches  */}
+    {/* the cover holes for direct finger press (see parts.txt).       */}
+    {/* Placed at x=-76/-62, clear of the AC lanes (L@x=-85, N@x=-93). */}
     {/* ============================================================ */}
-    <pushbutton name="BTN_PAIR" schX={6} schY={-7} pcbX={22} pcbY={26} />
-    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={28} pcbY={26} />
-    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={34} pcbY={26} />
+    <silkscreentext text="PAIR" pcbX={-76} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
+    <pushbutton name="BTN_PAIR" schX={6} schY={-7} pcbX={-76} pcbY={-14} />
+    <resistor name="R_BPAIR" resistance="10k" footprint="0603" schX={7} schY={-7} pcbX={-70} pcbY={-20} />
+    <capacitor name="C_BPAIR" capacitance="100nF" footprint="0603" schX={8} schY={-7} pcbX={-76} pcbY={-20} />
     <trace from="BTN_PAIR.pin1" to="net.GND" />
     <trace from="BTN_PAIR.pin2" to="R_BPAIR.pin2" />
     <trace from="R_BPAIR.pin1" to="net.V3V3" />
@@ -369,9 +373,10 @@ export default () => (
     <trace from="C_BPAIR.pin1" to="ESP_R.GPIO0" />
     <trace from="C_BPAIR.pin2" to="net.GND" />
 
-    <pushbutton name="BTN_RST" schX={10} schY={-7} pcbX={40} pcbY={26} />
-    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={46} pcbY={26} />
-    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={52} pcbY={26} />
+    <silkscreentext text="RESET" pcbX={-60} pcbY={-7} anchorAlignment="center" fontSize={1.5} />
+    <pushbutton name="BTN_RST" schX={10} schY={-7} pcbX={-60} pcbY={-14} />
+    <resistor name="R_BRST" resistance="10k" footprint="0603" schX={11} schY={-7} pcbX={-54} pcbY={-20} />
+    <capacitor name="C_BRST" capacitance="100nF" footprint="0603" schX={12} schY={-7} pcbX={-60} pcbY={-20} />
     <trace from="BTN_RST.pin1" to="net.GND" />
     <trace from="BTN_RST.pin2" to="R_BRST.pin2" />
     <trace from="R_BRST.pin1" to="net.V3V3" />
