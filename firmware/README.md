@@ -17,15 +17,25 @@ authoritative hardware spec; this directory is the implementation.
 
 ## Build & flash
 
-Requires [PlatformIO](https://platformio.org/) (`pip install platformio` or the
-VS Code extension).
+PlatformIO is pinned as a Python dependency in `pyproject.toml` and run through a
+[uv](https://docs.astral.sh/uv/)-managed venv, so the toolchain is reproducible
+and isolated from the system Python:
 
 ```bash
 cd firmware
-pio run                 # compile
-pio run -t upload       # flash over USB (DevKit auto-reset)
-pio device monitor      # serial console @ 115200
+uv sync                    # one-time: create .venv with PlatformIO (Python 3.12)
+uv run pio run             # compile
+uv run pio run -t upload   # flash over USB (DevKit auto-reset)
+uv run pio device monitor  # serial console @ 115200
 ```
+
+> Why uv and not a bare `pip install platformio`? On current macOS, Homebrew's
+> Python 3.14 has a broken `pyexpat` that crashes PlatformIO's tool installer.
+> Pinning `requires-python = ">=3.12,<3.14"` in `pyproject.toml` sidesteps it.
+> `pip` is a declared dep because PlatformIO shells out to it for esptool helpers.
+>
+> If you already have a working `pio` on your PATH, plain `pio run` works too —
+> the uv wrapper is only there to guarantee a clean interpreter.
 
 First flash must be wired (USB). After that you can push over WiFi — uncomment the
 `[env:esp32-ota]` block in `platformio.ini`, set `upload_port`, and run

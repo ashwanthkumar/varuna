@@ -37,3 +37,7 @@ enclosure/docs/
 # Claude Code session state (machine-specific)
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+
+# firmware build tooling (uv venv + PlatformIO build cache)
+firmware/.venv/
+firmware/.pio/

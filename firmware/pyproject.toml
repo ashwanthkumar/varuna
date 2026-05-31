@@ -1,0 +1,13 @@
+[project]
+name = "varuna-firmware-tools"
+version = "1.0.0"
+description = "Build tooling (PlatformIO) for the Varuna ESP32 firmware"
+# Pin away from Python 3.14: its macOS pyexpat is linked against an older system
+# libexpat and crashes PlatformIO's pip-driven tool installs. 3.12/3.13 are fine.
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "platformio>=6.1,<7",
+    # PlatformIO shells out to `python -m pip` to install tool helper packages
+    # (esptool deps). uv venvs are pip-less by default, so declare it explicitly.
+    "pip>=24",
+]
